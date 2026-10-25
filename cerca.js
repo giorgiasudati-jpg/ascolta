@@ -209,24 +209,41 @@ function setupLogSearch(){
 }
 
 /* ---------- arricchire i dischi già presenti, uno alla volta, in sottofondo ---------- */
+/* prima copertine e link per tutti (si vedono subito), poi i crediti; prima i dischi in studio, poi la coda, poi i semi.
+   Un errore su un disco non ferma gli altri; se l'app va in secondo piano si ferma e riprende quando torni. */
 let enriching=false;
 const RETRY=30*864e5;
-function needs(d){
-  const m=!d.meta||(d.meta.none&&Date.now()-d.meta.at>RETRY);
-  const c=!d.credits||(d.credits.none&&Date.now()-d.credits.at>RETRY);
-  return m||c;
-}
+const stale=x=>!x||(x.none&&Date.now()-x.at>RETRY);
+const needs=d=>stale(d.meta)||stale(d.credits);
+const pause=ms=>new Promise(r=>setTimeout(r,ms));
+function enrichStatus(t){const el=document.getElementById("enrich");if(el)el.textContent=t||"";}
 async function enrichAll(){
   if(enriching||!db||!navigator.onLine)return;
   enriching=true;
+  const order={studio:0,coda:1,radar:1,scoperta:2,seme:3};
+  const sorted=()=>[...discs.values()].sort((a,b)=>(order[a.status]??4)-(order[b.status]??4));
+  const steps=[
+    {key:"meta",label:"copertine",run:d=>matchApple(d)},
+    {key:"credits",label:"crediti",run:d=>fetchCredits(d.title,d.artist)}
+  ];
   try{
-    for(const d of [...discs.values()].filter(needs)){
-      if(!navigator.onLine||document.visibilityState!=="visible")break;
-      const patch={};
-      if(!d.meta||(d.meta.none&&Date.now()-d.meta.at>RETRY))patch.meta=await matchApple(d);
-      if(!d.credits||(d.credits.none&&Date.now()-d.credits.at>RETRY))patch.credits=await fetchCredits(d.title,d.artist);
-      if(discs.has(d.id))await db.doc("dischi/"+d.id).update(patch);
+    for(const st of steps){
+      const todo=sorted().filter(d=>stale(d[st.key]));
+      let n=0;
+      for(const d of todo){
+        if(!navigator.onLine||document.visibilityState!=="visible")return;
+        enrichStatus(st.label+" "+n+"/"+todo.length);
+        try{
+          const val=await st.run(d);
+          if(discs.has(d.id))await db.doc("dischi/"+d.id).update({[st.key]:val});
+        }catch(e){
+          console.warn("Enlist: "+st.label+" rimandati per "+d.title,e);
+          if(/ (403|429|503)$/.test(e.message))await pause(60000);
+        }
+        n++;
+      }
     }
-  }catch(e){console.warn("Enlist: arricchimento rimandato",e);}
-  finally{enriching=false;}
+  }finally{enriching=false;enrichStatus("");}
 }
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")setTimeout(enrichAll,3000);});
+window.addEventListener("online",()=>setTimeout(enrichAll,3000));

@@ -60,6 +60,7 @@ header.top{padding-block:14px 0}
 .month{font-size:.68rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-2)}
 .sync{margin-left:auto;font-size:.68rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2);white-space:nowrap}
 .sync:empty{display:none}
+#enrich+#sync{margin-left:10px}
 
 /* illustrazioni a linea, nel colore dell'inchiostro, con il tratto un po' tremolante del disegno a mano */
 .ill{display:block;color:var(--ink);overflow:visible}
@@ -315,7 +316,7 @@ dialog .actions{grid-column:1/-1;justify-content:flex-end;padding-top:4px}
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><filter id="hand" x="-10%" y="-10%" width="120%" height="120%"><feTurbulence type="fractalNoise" baseFrequency="0.018" numOctaves="1" seed="7"/><feDisplacementMap in="SourceGraphic" scale="1.8"/></filter></svg>
 <header class="top">
-  <div class="wrap top-row"><span class="mark">enlist</span><span class="month" id="month"></span><span class="sync" id="sync" aria-live="polite"></span></div>
+  <div class="wrap top-row"><span class="mark">enlist</span><span class="month" id="month"></span><span class="sync" id="enrich" aria-live="polite"></span><span class="sync" id="sync" aria-live="polite"></span></div>
 </header>
 
 <main class="wrap" id="main">
