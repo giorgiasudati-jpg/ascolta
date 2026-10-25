@@ -347,12 +347,15 @@ const LENSES=[
  {id:"contesto",name:"Contesto",hint:"Crediti, interviste, influenze. Da dove viene questo disco e dove porta."}
 ];
 const LENS=Object.fromEntries(LENSES.map(l=>[l.id,l]));
-const MAX=8, ROT=3, KEEP=90, GRACE=30;
+const MAX=8, ROT=4, GRACE=30;
+/* dopo la tappa 8 un disco è tuo e torna da te: dopo 3 mesi, 6 mesi, un anno e poi ogni anno */
+const RET=[90,180,365];
 /* giorni da aspettare per salire dalla tappa n alla n+1; un ascolto conta già dal 60% dell'attesa */
 const GAP=[0,2,3,5,7,14,21,30];
-/* tappe 1–3 (conoscere il disco) si possono fare anche di passaggio; dalla 4 in su serve un ascolto attento */
+/* tappe 1–3 (conoscere il disco) si possono fare anche di passaggio, ma almeno una deve essere attenta; dalla 4 in su serve un ascolto attento */
 const LIGHT_UNTIL=3;
-const DAY={piena:{name:"Piena",desc:"al massimo uno di passaggio",a:0,p:1},normale:{name:"Normale",desc:"un ascolto attento",a:1,p:0},buona:{name:"Buona",desc:"uno attento e due di passaggio",a:1,p:2}};
+const lightOk=(stage,hadAtt)=>stage<LIGHT_UNTIL&&(stage<2||hadAtt);
+const DAY={piena:{name:"Piena",desc:"al massimo uno di passaggio",a:0,p:1},normale:{name:"Normale",desc:"un ascolto attento",a:1,p:0},buona:{name:"Buona",desc:"due ascolti attenti",a:2,p:0}};
 const MOMENTS={mattina:"mattina",pomeriggio:"pomeriggio",sera:"sera",notte:"notte"};
 
 /* illustrazioni: linea sottile in currentColor, viewBox 120×120 */
@@ -397,14 +400,16 @@ const cache=new Map();
 function progress(d){
   if(cache.has(d.id))return cache.get(d.id);
   const ls=listens.filter(l=>l.disc===d.id).sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:(a.createdAt||0)-(b.createdAt||0));
-  let stage=0,lastStep=null,last=null;const used=new Set(),cnt={};
+  let stage=0,lastStep=null,last=null,hadAtt=false,returns=0;const used=new Set(),cnt={};
   if(d.baseStage>0){stage=Math.min(MAX,d.baseStage);if(d.baseDate){lastStep=last=dnum(d.baseDate);}}
   for(const l of ls){
     const n=dnum(l.date),att=(l.type||"attento")==="attento";
     if(att&&l.lens&&LENS[l.lens]){used.add(l.lens);cnt[l.lens]=(cnt[l.lens]||0)+1;}
     if(stage===0){stage=1;lastStep=n;}
     else if(lastStep===null){lastStep=n;}
-    else if(stage<MAX&&n-lastStep>=Math.ceil(GAP[stage]*0.6)&&(att||stage<LIGHT_UNTIL)){stage++;lastStep=n;}
+    else if(stage>=MAX){if(n-lastStep>=Math.ceil(RET[Math.min(returns,RET.length-1)]*0.6)){returns++;lastStep=n;}}
+    else if(n-lastStep>=Math.ceil(GAP[stage]*0.6)&&(att||lightOk(stage,hadAtt))){stage++;lastStep=n;}
+    if(att)hadAtt=true;
     last=last===null?n:Math.max(last,n);
   }
   const T=TODAY();
@@ -412,19 +417,20 @@ function progress(d){
   const depth=stage/MAX*0.75+used.size/LENSES.length*0.25;
   let intensity=depth,nextDue=null,earliest=null,overdue=0,fading=false;
   if(lastStep!==null){
-    nextDue=full?last+KEEP:lastStep+GAP[stage];
-    earliest=full?nextDue:lastStep+Math.ceil(GAP[stage]*0.6);
+    const gap=full?RET[Math.min(returns,RET.length-1)]:GAP[stage];
+    nextDue=lastStep+gap;
+    earliest=lastStep+Math.ceil(gap*0.6);
     overdue=T-nextDue;
     /* il tempo per sbiadire parte al più presto dal giorno in cui il disco è entrato in studio: l'attesa in coda non conta */
     const late=T-Math.max(nextDue,d.enteredAt?dnum(d.enteredAt):nextDue);
-    if(d.status==="studio"&&late>GRACE){fading=true;intensity=depth*(1-0.5*Math.min(1,(late-GRACE)/60));}
+    if(d.status==="studio"&&!full&&late>GRACE){fading=true;intensity=depth*(1-0.5*Math.min(1,(late-GRACE)/60));}
   }
   const fresh=LENSES.find(x=>!used.has(x.id));
   const sug=stage===0?LENS.insieme:(fresh||LENSES.slice().sort((a,b)=>(cnt[a.id]||0)-(cnt[b.id]||0))[0]);
   const heardToday=ls.some(l=>l.date===todayStr());
-  const p={stage,depth,intensity,nextDue,earliest,overdue,fading,used,sug,ls,last,full,heardToday,
+  const p={stage,depth,intensity,nextDue,earliest,overdue,fading,used,sug,ls,last,full,heardToday,returns,hadAtt,
     phase:stage<4?"primo":full?"full":"rot",
-    lightOk:stage<LIGHT_UNTIL,
+    lightOk:lightOk(stage,hadAtt),
     ready:stage===0||lastStep===null||T>=earliest};
   cache.set(d.id,p);return p;
 }
@@ -461,14 +467,13 @@ function todayPlan(){
   const taken=new Set(attPick.map(x=>x.d.id));
   const pas=[];
   for(const x of pool){if(taken.has(x.d.id))continue;
-    if(x.p.lightOk&&x.p.ready)pas.push({...x,rank:0,why:x.p.stage===0?"Primo contatto con il disco, anche distratto va bene.":"Anche distratto, porta alla tappa "+(x.p.stage+1)+"."});
-    else if(x.p.full&&T>=x.p.nextDue)pas.push({...x,rank:1,why:"Richiamo: un ripasso leggero per non perderlo."});
-    else if(!x.p.full&&x.p.last!==null&&T-x.p.last>=5)pas.push({...x,rank:2,why:"Per tenerlo vivo tra una tappa e l'altra. Non fa salire di tappa."});
+    if(x.p.lightOk&&x.p.ready)pas.push({...x,why:x.p.stage===0?"Primo contatto con il disco, anche distratto va bene.":"Anche distratto, porta alla tappa "+(x.p.stage+1)+"."});
   }
-  pas.sort((a,b)=>a.rank-b.rank||(a.p.last??0)-(b.p.last??0));
+  pas.sort((a,b)=>(a.p.last??0)-(b.p.last??0));
   const pasPick=pas.slice(0,Math.max(0,cap.p-doneP)).map(x=>({...x,kind:"passaggio"}));
   const nextAtt=att.length?null:pool.filter(x=>!x.p.full&&x.p.earliest!==null).sort((a,b)=>a.p.earliest-b.p.earliest)[0]||null;
-  return {F,cap,todays,doneA,doneP,attPick,pasPick,nextAtt};
+  const ret=F.full.filter(x=>!x.p.heardToday&&x.p.nextDue!==null&&T>=x.p.nextDue).sort((a,b)=>a.p.nextDue-b.p.nextDue)[0]||null;
+  return {F,cap,todays,doneA,doneP,attPick,pasPick,nextAtt,ret};
 }
 
 /* ---------- utilità ---------- */
@@ -494,17 +499,20 @@ function lensDots(p){return '<div class="lenses" aria-label="Lenti già usate">'
 function phasePill(d,p){
   if(isDiscovery(d))return '<span class="pill coda">scoperta</span>';
   if(!isActive(d))return '<span class="pill coda">in coda</span>';
-  return {primo:'<span class="pill primo">primo piano</span>',rot:'<span class="pill rot">rotazione</span>',full:'<span class="pill full">interiorizzato</span>'}[p.phase];
+  return {primo:'<span class="pill primo">primo piano</span>',rot:'<span class="pill rot">rotazione</span>',full:'<span class="pill full">tuo</span>'}[p.phase];
 }
+function since(days){if(days<45)return days+" giorni";if(days<330)return Math.round(days/30)+" mesi";const y=Math.round(days/365);return y===1?"un anno":y+" anni";}
+/* due date per ogni tappa: da quando l'ascolto conta già, e il giorno ideale */
+function when(p){return p.nextDue>p.earliest?'dal <b>'+fmt(p.earliest)+'</b> · ideale il <b>'+fmt(p.nextDue)+'</b>':'dal <b>'+fmt(p.earliest)+'</b>';}
 function readyLine(d,p){
   if(isDiscovery(d))return '<p class="next muted">Ascoltato '+(p.last!==null?fmt(p.last):'')+'. Se vuoi studiarlo, mettilo in coda: gli ascolti già fatti contano.</p>';
   if(!isActive(d))return '<p class="next muted">Aspetta il suo turno in coda.'+(p.ls.length?' Gli ascolti già fatti contano.':'')+'</p>';
   if(p.stage===0||p.nextDue===null)return '<p class="next"><b>Pronto</b> per il primo ascolto.</p>';
   const T=TODAY();
-  if(p.full)return '<p class="next">Richiamo leggero '+(T>=p.nextDue?'<b>quando vuoi</b>':'dal <b>'+fmt(p.nextDue)+'</b>')+'.</p>';
+  if(p.full)return T>=p.nextDue?'<p class="next"><b>Un ritorno</b> ti aspetta, quando vuoi.</p>':'<p class="next">Prossimo ritorno il <b>'+fmt(p.nextDue)+'</b>.</p>';
   const how=p.lightOk?"anche di passaggio":"ascolto attento";
-  if(T>=p.earliest)return '<p class="next"><b>Pronto</b> per la tappa '+(p.stage+1)+' ('+how+', lente '+esc(p.sug.name)+').</p>';
-  return '<p class="next">Tappa '+(p.stage+1)+' dal <b>'+fmt(p.earliest)+'</b> ('+rel(p.earliest)+', '+how+').</p>';
+  if(T>=p.earliest)return '<p class="next"><b>Pronto</b> per la tappa '+(p.stage+1)+' ('+how+', lente '+esc(p.sug.name)+')'+(T<p.nextDue?' · ideale il <b>'+fmt(p.nextDue)+'</b>':'')+'.</p>';
+  return '<p class="next">Tappa '+(p.stage+1)+' '+when(p)+' ('+how+').</p>';
 }
 function card(d){
   const p=progress(d),par=d.parent&&discs.get(d.parent),hist=ui.openHist.has(d.id);
@@ -547,17 +555,19 @@ function vOggi(){
     if(P.todays.length)msg='<b>Per oggi hai fatto quello che serviva.</b><span>Tutto il resto può aspettare.</span>';
     else if(ui.day==="piena")msg='<b>Oggi va bene anche niente.</b><span>Nessun disco ha bisogno di te oggi. Se in tragitto ti va di ascoltare qualcosa, segnalo pure.</span>';
     else if(!F.act.length&&!F.coda.length)msg='<b>Non c\'è ancora nessun disco.</b><span>Aggiungine uno dalla scheda Dischi.</span>';
-    else msg='<b>Nessun disco è pronto per oggi.</b><span>'+(P.nextAtt?'Il prossimo ascolto attento: '+esc(P.nextAtt.d.title)+', dal '+fmt(P.nextAtt.p.earliest)+'.':'Goditi un ascolto libero, se ne hai voglia.')+'</span>';
-    h+='<div class="empty">'+ill("cuffie")+msg+'</div>';
+    else msg='<b>'+(P.ret?'Nessun disco in studio è pronto oggi.':'Nessun disco è pronto per oggi.')+'</b><span>'+(P.nextAtt?'Il prossimo ascolto attento: '+esc(P.nextAtt.d.title)+', '+when(P.nextAtt.p)+'.':'Goditi un ascolto libero, se ne hai voglia.')+'</span>';
+    h+='<div class="empty">'+(P.ret?'':ill("cuffie"))+msg+'</div>';
   } else if(P.attPick.length===0&&P.cap.a>P.doneA&&P.nextAtt){
-    h+='<p class="muted" style="font-size:.92rem">Nessun ascolto attento è pronto oggi. Il prossimo: '+esc(P.nextAtt.d.title)+', dal '+fmt(P.nextAtt.p.earliest)+'.</p>';
+    h+='<p class="muted" style="font-size:.92rem">Nessun ascolto attento è pronto oggi. Il prossimo: '+esc(P.nextAtt.d.title)+', '+when(P.nextAtt.p)+'.</p>';
   }
+  if(P.ret){const x=P.ret,s=since(T-x.p.last);
+    h+='<div class="task ret"><span class="kind">un ritorno · se ti va</span><div><h3>'+esc(x.d.title)+'</h3><div class="artist">'+esc(x.d.artist)+'</div><p class="why">'+(s.startsWith("un ")?"È passato ":"Sono passati ")+s+' dall\'ultima volta. Prova la lente '+esc(x.p.sug.name)+': '+esc(x.p.sug.hint.charAt(0).toLowerCase()+x.p.sug.hint.slice(1))+'</p>'+bar(x.p,true)+'</div><button class="btn small ghost" data-act="log" data-id="'+esc(x.d.id)+'" data-type="attento">Fatto</button></div>';}
   h+='</div></section>';
   /* flusso */
   const primo=F.primo[0]||F.entering;
   h+='<section class="block"><div class="block-head"><div class="eyebrow">Il flusso</div><h2>Dove sono i tuoi dischi</h2><p>Un disco alla volta in primo piano, finché non arriva alla tappa 4. Poi passa in rotazione e lascia il posto al primo della coda.</p></div><div class="flow">';
   h+='<div class="lane"><div class="eyebrow"><span>Primo piano</span></div>'+(primo?mini(primo,primo.entering?'Entra adesso: il primo ascolto è pronto.':'tappa '+primo.p.stage+' di 4 per passare in rotazione')+(F.primo.length>1?'<div class="mini slot">Ci sono altri '+(F.primo.length-1)+' dischi in fase iniziale: li ho messi in fila dopo questo.</div>':''):'<div class="mini slot">'+(F.coda.length?'In attesa che si liberi un posto in rotazione.':'Vuoto. Aggiungi un disco alla coda.')+'</div>')+'</div>';
-  h+='<div class="lane"><div class="eyebrow"><span>In rotazione</span><span>'+F.rot.length+'/'+ROT+'</span></div>'+F.rot.map(x=>mini(x,'tappa '+x.p.stage+' · '+(T>=x.p.earliest?'pronto':'dal '+fmt(x.p.earliest)))).join("")+(F.rot.length<ROT?'<div class="mini slot">'+(ROT-F.rot.length)+(ROT-F.rot.length===1?' posto libero':' posti liberi')+'</div>':'')+'</div>';
+  h+='<div class="lane"><div class="eyebrow"><span>In rotazione</span><span>'+F.rot.length+'/'+ROT+'</span></div>'+F.rot.map(x=>mini(x,'tappa '+x.p.stage+' · '+(T>=x.p.nextDue?'pronto':T>=x.p.earliest?'pronto · ideale il '+fmt(x.p.nextDue):'dal '+fmt(x.p.earliest)+' · ideale il '+fmt(x.p.nextDue)))).join("")+(F.rot.length<ROT?'<div class="mini slot">'+(ROT-F.rot.length)+(ROT-F.rot.length===1?' posto libero':' posti liberi')+'</div>':'')+'</div>';
   const next=F.coda[0];
   h+='<div class="lane"><div class="eyebrow"><span>Prossimo in coda</span><span>'+F.coda.length+'</span></div>'+(next&&!F.entering?'<div class="mini"><b>'+esc(next.title)+'</b><span class="muted" style="font-size:.88rem">'+esc(next.artist)+'</span><div class="m">'+esc(F.waitWhy)+'</div></div>':F.entering&&F.coda[1]?'<div class="mini"><b>'+esc(F.coda[1].title)+'</b><span class="muted" style="font-size:.88rem">'+esc(F.coda[1].artist)+'</span><div class="m">Dopo '+esc(F.entering.d.title)+'.</div></div>':'<div class="mini slot">La coda è vuota.</div>')+'</div>';
   h+='</div></section>';
@@ -576,7 +586,7 @@ function vOggi(){
   for(let n=start;n<start+7;n++){const ls=listens.filter(l=>dnum(l.date)===n);const a=ls.filter(l=>(l.type||"attento")==="attento").length,pp=ls.length-a;wa+=a;wp+=pp;
     w+='<div class="'+(n===T?"today":"")+'"><span class="dl">'+fmt(n,{weekday:"short",day:undefined,month:undefined}).slice(0,3)+'</span><i>'+'<em class="a"></em>'.repeat(a)+'<em class="p"></em>'.repeat(pp)+'</i></div>';}
   w+='</div>';
-  h+='<section class="block"><div class="block-head"><div class="eyebrow">Questa settimana</div><h2>Il ritmo</h2><p class="weeksum">'+wa+(wa===1?' ascolto attento':' ascolti attenti')+' e '+wp+' di passaggio. Bastano 2 o 3 ascolti attenti a settimana per far scorrere tutto.</p></div>'+w+
+  h+='<section class="block"><div class="block-head"><div class="eyebrow">Questa settimana</div><h2>Il ritmo</h2><p class="weeksum">'+wa+(wa===1?' ascolto attento':' ascolti attenti')+' e '+wp+' di passaggio. Con circa 4 ascolti attenti a settimana entra un disco nuovo ogni due settimane.</p></div>'+w+
    '<div class="legend"><span><i style="background:var(--ink);border-radius:2px"></i>attento</span><span><i style="border:1.5px solid var(--ink);border-radius:2px"></i>di passaggio</span></div>'+statsHtml()+'</section>';
   return h+'</div>';
 }
@@ -587,7 +597,7 @@ function vDischi(){
   return '<div class="view"><header class="ph"><div class="ph-top"><div class="eyebrow">'+F.act.length+' in studio · '+F.coda.length+' in coda</div>'+ill("pila")+'</div><h1>Dischi</h1></header>'+
    sec("In primo piano","La fase intensa: le prime 4 tappe in circa due settimane.",F.primo)+
    sec("In rotazione · "+F.rot.length+"/"+ROT,"Tornano ogni 1, 2, 3 e poi 4 settimane, sempre con un ascolto attento e una lente nuova.",F.rot)+
-   (F.full.length?sec("Interiorizzati","Un richiamo leggero ogni tre mesi, anche di passaggio.",F.full):'')+
+   (F.full.length?sec("Tuoi","Tornano da te dopo 3 mesi, 6 mesi, un anno e poi una volta all\'anno, con la lente che hai usato meno.",F.full):'')+
    (()=>{const sc=[...discs.values()].filter(isDiscovery).map(d=>({d,p:progress(d)})).sort((a,b)=>(b.p.last??0)-(a.p.last??0));return sc.length?sec("Scoperte · "+sc.length,"Dischi ascoltati fuori dal flusso. Restano qui senza impegno. Se uno ti prende, mettilo in coda e gli ascolti già fatti contano come prime tappe.",sc):'';})()+
    '<section class="block"><div class="block-head"><h2>In coda · '+F.coda.length+'</h2><p>L\'ordine in cui entreranno. Il primo entra da solo quando si libera il posto.</p></div>'+
    (F.coda.length?'<ol class="qlist">'+F.coda.map((d,i)=>'<li><div><b>'+esc(d.title)+'</b> <span class="muted">· '+esc(d.artist)+(d.year?' · '+esc(d.year):'')+'</span>'+(d.why?'<p>'+esc(d.why)+'</p>':'')+(d.baseStage?'<p>Parte dalla tappa '+d.baseStage+'.</p>':'')+'</div><div class="actions">'+(i>0?'<button class="btn small ghost" data-act="top" data-id="'+esc(d.id)+'">Metti per primo</button>':'')+'<button class="btn small ghost" data-act="unqueue" data-id="'+esc(d.id)+'">'+(d.parent?'Rimetti tra i semi':'Togli')+'</button></div></li>').join("")+'</ol>':'<p class="muted">La coda è vuota. Quando un disco apre la rete, in Oggi ti propongo cosa mettere qui.</p>')+
@@ -602,7 +612,7 @@ function vDischi(){
     '<div class="actions wide"><button class="btn" type="submit">Aggiungi</button></div></form></details></section></div>';
 }
 function vRete(){
-  return '<div class="view"><header class="ph"><div class="ph-top"><div class="eyebrow">In orizzontale</div>'+ill("rete")+'</div><h1>Rete</h1><p>Ogni punto è un disco. Più è grande, più tappe ha. Più è scuro, più l\'hai assorbito. I bordi tratteggiati sono i dischi in coda. Un disco apre due rami alla tappa 4, altri due alla 6 e gli ultimi due quando è interiorizzato.</p></header><section class="block">'+
+  return '<div class="view"><header class="ph"><div class="ph-top"><div class="eyebrow">In orizzontale</div>'+ill("rete")+'</div><h1>Rete</h1><p>Ogni punto è un disco. Più è grande, più tappe ha. Più è scuro, più l\'hai assorbito. I bordi tratteggiati sono i dischi in coda. Un disco apre due rami alla tappa 4, altri due alla 6 e gli ultimi due quando diventa tuo.</p></header><section class="block">'+
    '<div class="net"><div><div class="net-box"><svg id="graph" role="img" aria-label="Rete dei dischi collegati"></svg></div>'+
    '<div class="legend"><span><i style="background:var(--deep)"></i>assorbito</span><span><i style="background:color-mix(in oklab,var(--deep) 30%,var(--groove))"></i>appena iniziato</span><span><i style="border:1.5px dashed var(--muted)"></i>in coda</span></div></div>'+
    '<aside class="side" id="side" aria-live="polite">'+(ui.sel&&discs.get(ui.sel)?card(discs.get(ui.sel)):'<div class="empty"><b>Tocca un disco</b><span>Qui vedi la sua barra e quando è pronto per la prossima tappa.</span></div>')+'</aside></div></section></div>';
@@ -621,9 +631,9 @@ function vDiario(){
      '<div class="empty"><b>Il diario è ancora vuoto.</b><span>Ogni ascolto che segni compare qui, giorno per giorno, con la lente e le tue note.</span><button class="btn small" data-act="logany">Segna il primo ascolto</button></div>')+'</section></div>';
 }
 function vMetodo(){
-  const steps=[["Tappa 1","Il primo ascolto. Va bene anche di passaggio."],["Tappa 2","Dopo 2 giorni. Anche di passaggio."],["Tappa 3","Dopo 3 giorni. Anche di passaggio."],["Tappa 4","Dopo 5 giorni, ascolto attento. Il disco passa in rotazione e apre due rami."],["Tappa 5","Dopo una settimana."],["Tappa 6","Dopo due settimane. Altri due rami."],["Tappa 7","Dopo tre settimane."],["Tappa 8","Dopo un mese: interiorizzato. Poi un richiamo leggero ogni tre mesi."]];
-  return '<div class="view"><header class="ph"><div class="ph-top"><div class="eyebrow">Come funziona</div>'+ill("metronomo")+'</div><h1>Metodo</h1></header><section class="block"><div class="block-head"><div class="eyebrow">Pensato per una settimana piena</div><h2>Capienza fissa, niente arretrati</h2><p>Lavori con la musica tutto il giorno, quindi il sistema parte dal tempo che hai davvero. Un solo disco in primo piano, al massimo tre in rotazione, il resto in coda. In una settimana tipo servono 2 o 3 ascolti attenti e qualche ascolto di passaggio. Un disco nuovo entra circa ogni due o tre settimane, e in un anno arrivi in fondo a una ventina di dischi.</p></div>'+
-   '<div class="method"><div><b>Le date sono un minimo, non una scadenza</b><p>"Pronto dal 24" vuol dire che dal 24 quell\'ascolto conta. Se lo fai il 30 va benissimo lo stesso.</p></div><div><b>Un po\' in anticipo vale</b><p>Un ascolto fatto dopo più di metà dell\'attesa fa già salire di tappa.</p></div><div><b>Sbiadisce solo dopo un mese</b><p>Se un disco resta fermo più di 30 giorni oltre il previsto, il colore cala piano, fino a metà. Basta un ascolto per riportarlo pieno.</p></div><div><b>Ascolto attento</b><p>Il disco intero, con una lente. Serve dalla tappa 4 in su.</p></div><div><b>Di passaggio</b><p>In tragitto o mentre fai altro. Vale per le prime tre tappe e per i richiami, e tiene vivo un disco in rotazione.</p></div><div><b>Ascolti fuori programma</b><p>Hai ascoltato un disco nuovo? Segnalo con "Un disco nuovo": finisce tra le scoperte senza toccare il flusso. Se ti prende lo metti in coda, e quell\'ascolto conta già come prima tappa.</p></div><div><b>La rete si apre a goccia</b><p>Ti propongo un nuovo disco solo quando la coda è quasi vuota, tre alla volta. Ne scegli uno, gli altri aspettano.</p></div></div></section>'+
+  const steps=[["Tappa 1","Il primo ascolto. Meglio attento, con la lente Insieme."],["Tappa 2","Dopo 2 giorni. Anche di passaggio."],["Tappa 3","Dopo 3 giorni. Anche di passaggio, se uno dei primi due era attento."],["Tappa 4","Dopo 5 giorni, ascolto attento. Il disco passa in rotazione, libera il primo piano e apre due rami."],["Tappa 5","Dopo una settimana."],["Tappa 6","Dopo due settimane. Altri due rami."],["Tappa 7","Dopo tre settimane."],["Tappa 8","Dopo un mese: il disco è tuo. Da qui in poi, i ritorni."]];
+  return '<div class="view"><header class="ph"><div class="ph-top"><div class="eyebrow">Come funziona</div>'+ill("metronomo")+'</div><h1>Metodo</h1></header><section class="block"><div class="block-head"><div class="eyebrow">Pensato per una settimana piena</div><h2>Capienza fissa, niente arretrati</h2><p>Un solo disco in primo piano, al massimo quattro in rotazione, il resto in coda. Il sistema conta su un ascolto intero e attento quasi ogni giorno: in una settimana tipo ne servono circa quattro, e un disco nuovo entra circa ogni due settimane. Gli ascolti per lavoro, lezioni e session restano fuori: qui c\'è solo l\'ascolto che fai per te.</p></div>'+
+   '<div class="method"><div><b>Due date per ogni tappa</b><p>"Pronto dal 21 · ideale il 23": dal 21 l\'ascolto conta già, il 23 è il giorno giusto. Dopo va bene lo stesso, anche con settimane di ritardo.</p></div><div><b>Le giornate</b><p>Piena: niente, o al massimo un ascolto di passaggio. Normale: un ascolto attento. Buona: due ascolti attenti.</p></div><div><b>Ascolto attento</b><p>Il disco intero, senza interruzioni, con una lente. Serve per almeno una delle prime tre tappe e per tutte dalla 4 in su.</p></div><div><b>Di passaggio</b><p>In tragitto o mentre fai altro. Vale per le prime tappe e per i ritorni.</p></div><div><b>I ritorni</b><p>Quando un disco è tuo torna da te dopo 3 mesi, 6 mesi, un anno e poi una volta all\'anno, con la lente che hai usato meno. Uno alla volta, senza fretta: un disco tuo non sbiadisce.</p></div><div><b>Sbiadisce solo dopo un mese</b><p>Se un disco in studio resta fermo più di 30 giorni oltre il giorno ideale, il colore cala piano, fino a metà. Basta un ascolto per riportarlo pieno.</p></div><div><b>Ascolti fuori programma</b><p>Hai ascoltato un disco nuovo? Segnalo con "Un disco nuovo": finisce tra le scoperte senza toccare il flusso. Se ti prende lo metti in coda, e quell\'ascolto conta già come prima tappa.</p></div><div><b>La rete si apre a goccia</b><p>Ti propongo un nuovo disco solo quando la coda è quasi vuota, tre alla volta. Ne scegli uno, gli altri aspettano.</p></div></div></section>'+
    '<section class="block"><div class="block-head"><div class="eyebrow">Circa tre mesi per disco</div><h2>Le otto tappe</h2></div><div class="method">'+steps.map(s=>'<div><b>'+s[0]+'</b><p>'+s[1]+'</p></div>').join("")+'</div></section>'+
    '<section class="block"><div class="block-head"><div class="eyebrow">Una per ascolto attento</div><h2>Le otto lenti</h2><p>Ti propongo sempre una lente che non hai ancora usato su quel disco. Quando le hai usate tutte, torna quella usata meno.</p></div><div class="method">'+LENSES.map(l=>'<div><b>'+esc(l.name)+'</b><p>'+esc(l.hint)+'</p></div>').join("")+'</div></section>'+
    '<section class="block"><div class="block-head"><div class="eyebrow">Il colore</div><h2>Come si calcola l\'intensità</h2><p>Tre quarti vengono dalle tappe raggiunte, un quarto dalle lenti diverse che hai usato.</p></div></section></div>';
@@ -665,7 +675,7 @@ function statsHtml(){
   const F=flow(),T=TODAY();
   const wk=listens.filter(l=>T-dnum(l.date)<7&&T-dnum(l.date)>=0);
   const n=(v,l)=>'<div><b>'+v+'</b><span>'+l+'</span></div>';
-  return '<div class="stats" aria-live="polite">'+n(F.rot.length+'/'+ROT,"in rotazione")+n(wk.length,"ascolti 7 gg")+n(wk.filter(l=>(l.type||"attento")==="attento").length,"attenti")+n(F.full.length,"interiorizzati")+'</div>';
+  return '<div class="stats" aria-live="polite">'+n(F.rot.length+'/'+ROT,"in rotazione")+n(wk.length,"ascolti 7 gg")+n(wk.filter(l=>(l.type||"attento")==="attento").length,"attenti")+n(F.full.length,"tuoi")+'</div>';
 }
 function render(){
   if(!(loaded.d&&loaded.l))return;
@@ -744,8 +754,9 @@ $("#log-form").addEventListener("submit",async e=>{
       if(isNew){toast(dest==="coda"?"Disco aggiunto in coda, con il primo ascolto già fatto.":"Salvato tra le scoperte. Lo trovi in Dischi.");return;}
       if(!isActive(dd)){toast(isDiscovery(dd)?"Riascolto salvato tra le scoperte.":"Salvato. Resta in coda, e questo ascolto conterà quando entra.");return;}
       if(p.stage>before){
-        toast("Tappa "+p.stage+" raggiunta"+(p.full?": disco interiorizzato!":p.stage===4?": passa in rotazione.":"."));
-      } else toast(type==="passaggio"&&!p.lightOk&&!p.full?"Salvato. Lo tiene vivo, ma per la prossima tappa serve un ascolto attento.":"Ascolto salvato nel diario.");
+        toast("Tappa "+p.stage+" raggiunta"+(p.full?": il disco è tuo!":p.stage===4?": passa in rotazione.":"."));
+      } else if(p.full&&before>=MAX)toast("Ritorno segnato. Il prossimo: "+fmt(p.nextDue)+".");
+      else toast(type==="passaggio"&&!p.lightOk&&!p.full?"Salvato nel diario. Per la prossima tappa serve un ascolto attento.":"Ascolto salvato nel diario.");
     },400);
   }catch(err){writeErr(err);}
   finally{saving=false;$("#lf-save").disabled=false;}
