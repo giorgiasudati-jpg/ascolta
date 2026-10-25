@@ -270,6 +270,7 @@ aside.side{position:static}
 .entry b{font-weight:700}
 .entry .lens{display:inline-block;font-size:.6rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-left:8px;padding:2px 7px;border-radius:999px;border:1px solid var(--ink);vertical-align:2px}
 .entry .note{margin-top:6px;white-space:pre-wrap}
+.entry-acts{display:flex;flex-direction:column;align-items:flex-end;gap:2px}
 .entry .trk{font-size:.86rem;color:var(--ink-2);margin-top:2px}
 
 /* metodo */
@@ -564,7 +565,7 @@ function card(d){
     (isDiscovery(d)?'<button class="btn small" data-act="queue" data-id="'+esc(d.id)+'">Metti in coda</button><button class="btn small ghost" data-act="log" data-id="'+esc(d.id)+'" data-type="passaggio">Riascoltato</button><button class="btn small ghost" data-act="unqueue" data-id="'+esc(d.id)+'">Togli</button>':'')+
     (p.ls.length?'<button class="btn small ghost" data-act="hist" data-id="'+esc(d.id)+'" aria-expanded="'+hist+'">'+(hist?'Chiudi':'Storia')+' ('+p.ls.length+')</button>':'')+
    '</div>'+creditsBlock(d)+
-   (hist?'<ul class="history">'+p.ls.slice().reverse().map(l=>'<li><span class="mono">'+fmt(dnum(l.date))+' · '+esc(MOMENTS[l.moment]||"")+' · '+((l.type||"attento")==="attento"?esc(LENS[l.lens]?.name||"attento"):"di passaggio")+'</span>'+(l.track?'<br>♪ '+esc(l.track):'')+(l.note?'<span class="nota" style="margin-top:6px">'+esc(l.note)+'</span>':'')+'</li>').join("")+'</ul>':'')+
+   (hist?'<ul class="history">'+p.ls.slice().reverse().map(l=>'<li><span class="mono">'+fmt(dnum(l.date))+' · '+esc(MOMENTS[l.moment]||"")+' · '+((l.type||"attento")==="attento"?esc(LENS[l.lens]?.name||"attento"):"di passaggio")+'</span>'+(l.track?'<br>♪ '+esc(l.track):'')+(l.note?'<span class="nota" style="margin-top:6px">'+esc(l.note)+'</span>':'')+'<br><button class="linkbtn" data-act="edit" data-id="'+esc(l.id)+'">Modifica</button></li>').join("")+'</ul>':'')+
   '</article>';
 }
 function mini(x,extra){
@@ -681,7 +682,7 @@ function vDiario(){
   const days=Object.keys(byDay).sort().reverse(),order={mattina:0,pomeriggio:1,sera:2,notte:3};
   return '<div class="view"><header class="ph"><div class="ph-top"><div class="eyebrow">'+listens.length+(listens.length===1?' ascolto':' ascolti')+' segnati</div>'+ill("quaderno")+'</div><h1>Diario</h1></header><section class="block"><div class="block-head"><div class="eyebrow">Ultime '+weeks+' settimane</div><p>Ogni casella è un giorno, dal lunedì alla domenica. Più è scura, più ascolti hai segnato. Le caselle vuote sono normali: le giornate piene esistono.</p></div><div class="heat-wrap">'+heat+'</div></section>'+
    '<section class="block">'+(days.length?'<div class="days">'+days.map(day=>'<div class="day"><h3>'+fmt(dnum(day),{weekday:"long",day:"numeric",month:"long",year:"numeric"})+'</h3>'+
-     byDay[day].sort((a,b)=>(order[a.moment]??9)-(order[b.moment]??9)).map(l=>{const d=discs.get(l.disc),att=(l.type||"attento")==="attento";return '<div class="entry"><span class="when">'+esc(MOMENTS[l.moment]||"")+'</span><div><b>'+esc(d?d.title:"Disco rimosso")+'</b>'+(d?' <span class="muted">· '+esc(d.artist)+'</span>':'')+'<span class="lens">'+(att?esc(LENS[l.lens]?.name||"attento"):"di passaggio")+'</span>'+(l.track?'<div class="trk">♪ '+esc(l.track)+'</div>':'')+(l.note?'<div class="note nota">'+esc(l.note)+'</div>':'')+'</div><button class="linkbtn" data-act="del" data-id="'+esc(l.id)+'">Elimina</button></div>';}).join("")+'</div>').join("")+'</div>':
+     byDay[day].sort((a,b)=>(order[a.moment]??9)-(order[b.moment]??9)).map(l=>{const d=discs.get(l.disc),att=(l.type||"attento")==="attento";return '<div class="entry"><span class="when">'+esc(MOMENTS[l.moment]||"")+'</span><div><b>'+esc(d?d.title:"Disco rimosso")+'</b>'+(d?' <span class="muted">· '+esc(d.artist)+'</span>':'')+'<span class="lens">'+(att?esc(LENS[l.lens]?.name||"attento"):"di passaggio")+'</span>'+(l.track?'<div class="trk">♪ '+esc(l.track)+'</div>':'')+(l.note?'<div class="note nota">'+esc(l.note)+'</div>':'')+'</div><div class="entry-acts"><button class="linkbtn" data-act="edit" data-id="'+esc(l.id)+'">Modifica</button><button class="linkbtn" data-act="del" data-id="'+esc(l.id)+'">Elimina</button></div></div>';}).join("")+'</div>').join("")+'</div>':
      '<div class="empty"><b>Il diario è ancora vuoto.</b><span>Ogni ascolto che segni compare qui, giorno per giorno, con la lente e le tue note.</span><button class="btn small" data-act="logany">Segna il primo ascolto</button></div>')+'</section></div>';
 }
 function vMetodo(){
@@ -754,6 +755,7 @@ function setTab(t){ui.tab=t;try{localStorage.setItem("ascolta-tab",t);}catch(e){
 /* ---------- dialog ascolto ---------- */
 function openLog(id,type){
   if(!db){toast("Accedi per salvare gli ascolti.");return;}
+  ui.editId=null;$("#dlg-title").textContent="Segna un ascolto";$("#lf-save").textContent="Salva ascolto";$("#lf-disc").disabled=false;
   const F=flow();
   const act=[...F.primo,...F.rot,...F.full].map(x=>x.d);
   const sc=[...discs.values()].filter(isDiscovery);
@@ -775,6 +777,19 @@ function openLog(id,type){
   syncLens();
   const dlg=$("#dlg");if(dlg.showModal)dlg.showModal();else dlg.setAttribute("open","");
 }
+function openEdit(lid){
+  const l=listens.find(x=>x.id===lid);if(!l)return;
+  const d=discs.get(l.disc);if(!d){toast("Il disco di questo ascolto non c'è più.");return;}
+  openLog(d.id,l.type||"attento");if(!db)return;
+  if(!$("#lf-disc").querySelector('option[value="'+CSS.escape(d.id)+'"]'))$("#lf-disc").insertAdjacentHTML("beforeend",'<option value="'+esc(d.id)+'">'+esc(d.title)+' · '+esc(d.artist)+'</option>');
+  $("#lf-disc").value=d.id;$("#lf-disc").disabled=true;syncLens();
+  ((l.type||"attento")==="passaggio"?$("#lf-t-pas"):$("#lf-t-att")).checked=true;
+  $("#lf-date").value=l.date;if(l.moment)$("#lf-moment").value=l.moment;
+  if(l.lens&&LENS[l.lens])$("#lf-lens").value=l.lens;
+  $("#lf-track").value=l.track||"";$("#lf-note").value=l.note||"";
+  syncType();
+  ui.editId=lid;$("#dlg-title").textContent="Modifica ascolto";$("#lf-save").textContent="Salva modifiche";
+}
 function curType(){return $("#lf-t-pas").checked?"passaggio":"attento";}
 function syncLens(){
   const v=$("#lf-disc").value,isNew=v==="__new";$("#lf-new").hidden=!isNew;
@@ -791,6 +806,18 @@ $("#lf-cancel").addEventListener("click",closeLog);
 let saving=false;
 $("#log-form").addEventListener("submit",async e=>{
   e.preventDefault();if(saving)return;
+  if(ui.editId){
+    const date=$("#lf-date").value,type=curType();
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(date)){toast("Scegli un giorno.");return;}
+    if(date>todayStr()){toast("Il giorno non può essere nel futuro.");return;}
+    saving=true;$("#lf-save").disabled=true;
+    try{
+      await db.doc("ascolti/"+ui.editId).update({date,type,moment:$("#lf-moment").value,lens:type==="attento"?$("#lf-lens").value:null,track:$("#lf-track").value.trim().slice(0,200),note:$("#lf-note").value.trim().slice(0,4000)});
+      ui.editId=null;closeLog();toast("Ascolto aggiornato.");
+    }catch(err){writeErr(err);}
+    finally{saving=false;$("#lf-save").disabled=false;}
+    return;
+  }
   let id=$("#lf-disc").value;const date=$("#lf-date").value,type=curType(),isNew=id==="__new";
   if(!id||!/^\d{4}-\d{2}-\d{2}$/.test(date)){toast("Scegli un disco e un giorno.");return;}
   if(date>todayStr()){toast("Il giorno non può essere nel futuro.");return;}
@@ -837,6 +864,7 @@ document.addEventListener("click",async e=>{
   const b=e.target.closest("[data-act]");if(!b)return;
   const id=b.dataset.id,act=b.dataset.act;
   if(act==="log")return openLog(id,b.dataset.type);
+  if(act==="edit")return openEdit(id);
   if(act==="logany")return openLog();
   if(act==="cred"){ui.openCred.has(id)?ui.openCred.delete(id):ui.openCred.add(id);if(ui.tab==="rete")$("#side").innerHTML=card(discs.get(id));else render();return;}
   if(act==="hist"){ui.openHist.has(id)?ui.openHist.delete(id):ui.openHist.add(id);if(ui.tab==="rete")$("#side").innerHTML=card(discs.get(id));else render();return;}
