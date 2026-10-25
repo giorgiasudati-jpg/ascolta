@@ -10,16 +10,15 @@
 <meta name="theme-color" id="theme-color" content="#F7DCC8">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Caveat:wght@400..700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&display=swap">
 </head><body>
 <style>
-/* Layout: "inchiostro su carta". Un solo inchiostro per mese su una carta del suo colore, un'unica famiglia (Archivo) usata larga e pesante per i titoli e leggera per il testo, linee sottili al posto dei riquadri, barra a pillola in basso. Le note scritte da Giorgia sono in calligrafia. */
+/* Layout: "inchiostro su carta". Un solo inchiostro per mese su una carta del suo colore, un'unica famiglia (Archivo) usata larga e pesante per i titoli e leggera per il testo, linee sottili al posto dei riquadri, barra a pillola in basso. Le note scritte da Giorgia sono segnate da una linea a margine. */
 :root{
   /* la coppia del mese arriva da JS (applyMonth); questi sono i valori di ottobre come riserva */
   --hue-paper:#F7DCC8; --hue-ink:#9C3009;
   --paper:var(--hue-paper); --ink:var(--hue-ink);
   --f:"Archivo",system-ui,-apple-system,sans-serif;
-  --hand:"Caveat","Bradley Hand",cursive;
   --safe-b:env(safe-area-inset-bottom,0px);
   color-scheme:light;
 }
@@ -52,7 +51,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 h2{font-stretch:112%;font-weight:750;font-size:1.3rem;letter-spacing:-.01em}
 h3{font-weight:650;font-size:1.05rem}
 .eyebrow{font-size:.68rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-2)}
-.hand{font-family:var(--hand);font-size:1.32em;line-height:1.15;color:var(--ink)}
+.nota{display:block;padding-left:12px;border-left:2px solid var(--ink);color:var(--ink);font-size:.98rem;line-height:1.45}
 
 /* testata minima */
 header.top{padding-block:14px 0}
@@ -196,7 +195,7 @@ label.f{display:flex;flex-direction:column;gap:6px;font-size:.64rem;font-weight:
 label.f input,label.f select,label.f textarea{font-family:var(--f);font-size:16px;font-weight:400;text-transform:none;letter-spacing:0;color:var(--ink);background:transparent;border:1.5px solid var(--rule);border-radius:12px;padding:10px 12px;width:100%;min-height:44px;-webkit-appearance:none;appearance:none}
 label.f select{background-image:linear-gradient(45deg,transparent 50%,var(--ink) 50%),linear-gradient(135deg,var(--ink) 50%,transparent 50%);background-position:calc(100% - 18px) 55%,calc(100% - 13px) 55%;background-size:5px 5px;background-repeat:no-repeat;padding-right:34px}
 label.f input:focus,label.f select:focus,label.f textarea:focus{border-color:var(--ink);outline:none}
-label.f textarea{min-height:96px;resize:vertical;font-family:var(--hand);font-size:1.3rem;line-height:1.2}
+label.f textarea{min-height:96px;resize:vertical}
 .lens-hint{font-size:.9rem;color:var(--ink-2)}
 fieldset.seg{border:0;padding:0;margin:0;display:grid;grid-template-columns:1fr 1fr;gap:8px}
 fieldset.seg legend{font-size:.64rem;font-weight:700;color:var(--ink-2);text-transform:uppercase;letter-spacing:.12em;margin-bottom:6px}
@@ -519,7 +518,7 @@ function card(d){
     (isDiscovery(d)?'<button class="btn small" data-act="queue" data-id="'+esc(d.id)+'">Metti in coda</button><button class="btn small ghost" data-act="log" data-id="'+esc(d.id)+'" data-type="passaggio">Riascoltato</button><button class="btn small ghost" data-act="unqueue" data-id="'+esc(d.id)+'">Togli</button>':'')+
     (p.ls.length?'<button class="btn small ghost" data-act="hist" data-id="'+esc(d.id)+'" aria-expanded="'+hist+'">'+(hist?'Chiudi':'Storia')+' ('+p.ls.length+')</button>':'')+
    '</div>'+
-   (hist?'<ul class="history">'+p.ls.slice().reverse().map(l=>'<li><span class="mono">'+fmt(dnum(l.date))+' · '+esc(MOMENTS[l.moment]||"")+' · '+((l.type||"attento")==="attento"?esc(LENS[l.lens]?.name||"attento"):"di passaggio")+'</span>'+(l.track?'<br>♪ '+esc(l.track):'')+(l.note?'<br><span class="hand">'+esc(l.note)+'</span>':'')+'</li>').join("")+'</ul>':'')+
+   (hist?'<ul class="history">'+p.ls.slice().reverse().map(l=>'<li><span class="mono">'+fmt(dnum(l.date))+' · '+esc(MOMENTS[l.moment]||"")+' · '+((l.type||"attento")==="attento"?esc(LENS[l.lens]?.name||"attento"):"di passaggio")+'</span>'+(l.track?'<br>♪ '+esc(l.track):'')+(l.note?'<span class="nota" style="margin-top:6px">'+esc(l.note)+'</span>':'')+'</li>').join("")+'</ul>':'')+
   '</article>';
 }
 function mini(x,extra){
@@ -618,7 +617,7 @@ function vDiario(){
   const days=Object.keys(byDay).sort().reverse(),order={mattina:0,pomeriggio:1,sera:2,notte:3};
   return '<div class="view"><header class="ph"><div class="ph-top"><div class="eyebrow">'+listens.length+(listens.length===1?' ascolto':' ascolti')+' segnati</div>'+ill("quaderno")+'</div><h1>Diario</h1></header><section class="block"><div class="block-head"><div class="eyebrow">Ultime '+weeks+' settimane</div><p>Ogni casella è un giorno, dal lunedì alla domenica. Più è scura, più ascolti hai segnato. Le caselle vuote sono normali: le giornate piene esistono.</p></div><div class="heat-wrap">'+heat+'</div></section>'+
    '<section class="block">'+(days.length?'<div class="days">'+days.map(day=>'<div class="day"><h3>'+fmt(dnum(day),{weekday:"long",day:"numeric",month:"long",year:"numeric"})+'</h3>'+
-     byDay[day].sort((a,b)=>(order[a.moment]??9)-(order[b.moment]??9)).map(l=>{const d=discs.get(l.disc),att=(l.type||"attento")==="attento";return '<div class="entry"><span class="when">'+esc(MOMENTS[l.moment]||"")+'</span><div><b>'+esc(d?d.title:"Disco rimosso")+'</b>'+(d?' <span class="muted">· '+esc(d.artist)+'</span>':'')+'<span class="lens">'+(att?esc(LENS[l.lens]?.name||"attento"):"di passaggio")+'</span>'+(l.track?'<div class="trk">♪ '+esc(l.track)+'</div>':'')+(l.note?'<div class="note hand">'+esc(l.note)+'</div>':'')+'</div><button class="linkbtn" data-act="del" data-id="'+esc(l.id)+'">Elimina</button></div>';}).join("")+'</div>').join("")+'</div>':
+     byDay[day].sort((a,b)=>(order[a.moment]??9)-(order[b.moment]??9)).map(l=>{const d=discs.get(l.disc),att=(l.type||"attento")==="attento";return '<div class="entry"><span class="when">'+esc(MOMENTS[l.moment]||"")+'</span><div><b>'+esc(d?d.title:"Disco rimosso")+'</b>'+(d?' <span class="muted">· '+esc(d.artist)+'</span>':'')+'<span class="lens">'+(att?esc(LENS[l.lens]?.name||"attento"):"di passaggio")+'</span>'+(l.track?'<div class="trk">♪ '+esc(l.track)+'</div>':'')+(l.note?'<div class="note nota">'+esc(l.note)+'</div>':'')+'</div><button class="linkbtn" data-act="del" data-id="'+esc(l.id)+'">Elimina</button></div>';}).join("")+'</div>').join("")+'</div>':
      '<div class="empty"><b>Il diario è ancora vuoto.</b><span>Ogni ascolto che segni compare qui, giorno per giorno, con la lente e le tue note.</span><button class="btn small" data-act="logany">Segna il primo ascolto</button></div>')+'</section></div>';
 }
 function vMetodo(){
