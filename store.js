@@ -1,4 +1,4 @@
-/* Ascolta · il ponte tra l'app e Supabase.
+/* Enlist · il ponte tra l'app e Supabase.
    Offre all'app la stessa interfaccia del database di claude.ai (collection/doc/onSnapshot), così la logica non cambia.
    Ogni modifica si applica subito alla copia locale e parte verso Supabase appena c'è rete:
    l'app si apre e salva anche offline, e invia tutto quando torna la connessione. */
@@ -41,7 +41,7 @@ const Store=(()=>{
           if(r.error)throw r.error;
           outbox.shift();lastError=null;persist();
         }
-      }catch(e){lastError=e.message||String(e);console.warn("Ascolta: invio rimandato",e);status();}
+      }catch(e){lastError=e.message||String(e);console.warn("Enlist: invio rimandato",e);status();}
     })().finally(()=>{flushing=null;});
     return flushing;
   }

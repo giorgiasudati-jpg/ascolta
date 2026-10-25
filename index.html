@@ -1,11 +1,11 @@
 <!doctype html><html lang="it"><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style>
-<title>Ascolta</title>
+<title>ENLIST</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Ascolta">
+<meta name="apple-mobile-web-app-title" content="ENLIST">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="theme-color" id="theme-color" content="#F7DCC8">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -315,7 +315,7 @@ dialog .actions{grid-column:1/-1;justify-content:flex-end;padding-top:4px}
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><filter id="hand" x="-10%" y="-10%" width="120%" height="120%"><feTurbulence type="fractalNoise" baseFrequency="0.018" numOctaves="1" seed="7"/><feDisplacementMap in="SourceGraphic" scale="1.8"/></filter></svg>
 <header class="top">
-  <div class="wrap top-row"><span class="mark">ascolta</span><span class="month" id="month"></span><span class="sync" id="sync" aria-live="polite"></span></div>
+  <div class="wrap top-row"><span class="mark">enlist</span><span class="month" id="month"></span><span class="sync" id="sync" aria-live="polite"></span></div>
 </header>
 
 <main class="wrap" id="main">
@@ -852,7 +852,7 @@ document.addEventListener("submit",async e=>{
 let refreshDay=todayStr();
 setInterval(()=>{if(todayStr()!==refreshDay){refreshDay=todayStr();ui.day="normale";applyMonth();render();}},60000);
 function showLogin(){
-  $("#main").innerHTML='<section class="block login">'+ill("giradischi")+'<div class="block-head"><h2>Entra in Ascolta</h2><p>Email e password dell\'utente creato su Supabase. Lo fai una volta sola su ogni dispositivo.</p></div>'+
+  $("#main").innerHTML='<section class="block login">'+ill("giradischi")+'<div class="block-head"><h2>Entra in Enlist</h2><p>Email e password dell\'utente creato su Supabase. Lo fai una volta sola su ogni dispositivo.</p></div>'+
    '<form id="lg-form" novalidate><label class="f" for="lg-email">Email<input type="email" id="lg-email" autocomplete="username" required></label><label class="f" for="lg-pass">Password<input type="password" id="lg-pass" autocomplete="current-password" required></label><div class="actions"><button class="btn" type="submit">Entra</button></div></form></section>';
   $("#lg-form").addEventListener("submit",async e=>{
     e.preventDefault();const email=$("#lg-email").value.trim(),pass=$("#lg-pass").value;
@@ -871,7 +871,7 @@ function start(){
   Store.start();
   setTimeout(enrichAll,6000);
 }
-if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(e=>console.warn("Ascolta: niente modalità offline",e));
+if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(e=>console.warn("Enlist: niente modalità offline",e));
 (async()=>{
   let s=null;try{s=await Store.session();}catch(e){}
   if(s)start();else showLogin();

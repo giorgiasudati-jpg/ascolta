@@ -1,15 +1,16 @@
 {
-  "name": "Ascolta",
-  "short_name": "Ascolta",
-  "description": "Un disco alla volta in primo piano, tre in rotazione, il resto in coda.",
+  "name": "ENLIST",
+  "short_name": "ENLIST",
+  "description": "Un disco alla volta in primo piano, quattro in rotazione, il resto in coda.",
   "lang": "it",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#EEF0EA",
-  "theme_color": "#EEF0EA",
+  "background_color": "#F7DCC8",
+  "theme_color": "#F7DCC8",
   "icons": [
-    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
-    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ]
 }

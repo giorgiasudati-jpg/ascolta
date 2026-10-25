@@ -1,4 +1,4 @@
-/* Ascolta · cercare un disco e capire dove si lega alla rete.
+/* Enlist · cercare un disco e capire dove si lega alla rete.
    Apple Music (iTunes Search API) dà copertina, anno, numero di brani e link.
    MusicBrainz dà i crediti: chi ha scritto, prodotto, suonato, chi compare come ospite.
    I legami con gli altri dischi si calcolano confrontando i nomi dei crediti. Tutto gratuito, senza chiavi. */
@@ -227,6 +227,6 @@ async function enrichAll(){
       if(!d.credits||(d.credits.none&&Date.now()-d.credits.at>RETRY))patch.credits=await fetchCredits(d.title,d.artist);
       if(discs.has(d.id))await db.doc("dischi/"+d.id).update(patch);
     }
-  }catch(e){console.warn("Ascolta: arricchimento rimandato",e);}
+  }catch(e){console.warn("Enlist: arricchimento rimandato",e);}
   finally{enriching=false;}
 }
