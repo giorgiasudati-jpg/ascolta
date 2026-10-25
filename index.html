@@ -131,6 +131,39 @@ nav.tabs [role=tablist]{display:flex;gap:2px;padding:4px;border:1.5px solid var(
 .pill.coda{border-style:dashed;border-color:var(--rule);color:var(--ink-2)}
 .from{font-size:.74rem;color:var(--ink-2)}
 
+/* copertine: virate nell'inchiostro del mese, così restano dentro la palette */
+.cover{flex:none;width:58px;height:58px;border-radius:6px;object-fit:cover;background:var(--tint);filter:grayscale(1) contrast(1.08);mix-blend-mode:multiply}
+.cover.sm{width:44px;height:44px;border-radius:5px}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .cover{mix-blend-mode:screen}}
+:root[data-theme="dark"] .cover{mix-blend-mode:screen}
+.card-head .who{display:flex;gap:12px;align-items:center;min-width:0}
+.links{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;font-size:.84rem}
+.links li{padding-left:12px;border-left:2px solid var(--rule)}
+.links b{font-weight:700}
+.links span{color:var(--ink-2)}
+.credits{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr;gap:0;font-size:.86rem}
+.credits li{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-top:1px solid var(--rule)}
+.credits span{color:var(--ink-2);text-align:right}
+.src{font-size:.8rem;color:var(--ink-2)}
+a.linkbtn{display:inline-block}
+.finder{display:flex;flex-direction:column;gap:10px;padding-bottom:14px}
+.results{display:flex;flex-direction:column}
+.res{display:flex;gap:12px;align-items:center;text-align:left;padding:10px 0;border:0;border-top:1px solid var(--rule);background:none;cursor:pointer;width:100%;min-height:56px}
+.res img,.res .ph-cover{width:44px;height:44px;border-radius:5px;object-fit:cover;flex:none;background:var(--tint);filter:grayscale(1);mix-blend-mode:multiply}
+.res b{display:block;font-weight:700}
+.res small{display:block;color:var(--ink-2);font-size:.8rem}
+.picked{display:flex;gap:12px;align-items:center}
+.picked b{display:block;font-weight:700;font-size:1.05rem}
+.picked small{display:block;color:var(--ink-2);font-size:.82rem}
+.linkpick{border:0;padding:0;margin:0;display:flex;flex-direction:column;gap:8px}
+.linkpick legend{font-size:.64rem;font-weight:700;color:var(--ink-2);text-transform:uppercase;letter-spacing:.12em;margin-bottom:6px}
+.linkpick label{display:flex;gap:10px;align-items:flex-start;border:1.5px solid var(--rule);border-radius:14px;padding:10px 12px;cursor:pointer}
+.linkpick label:has(input:checked){border-color:var(--ink);background:var(--tint)}
+.linkpick input{accent-color:var(--ink);margin-top:4px}
+.linkpick b{display:block;font-weight:700}
+.linkpick small{display:block;font-size:.8rem;color:var(--ink-2)}
+.newdisc .finder-n{grid-column:1/-1;display:flex;flex-direction:column;gap:8px}
+
 /* la barra delle 8 tappe, con il numero grande tono su tono */
 .bar{display:grid;grid-template-columns:repeat(8,1fr);gap:3px}
 .bar i{height:6px;background:var(--tint);border-radius:999px}
@@ -294,6 +327,7 @@ dialog .actions{grid-column:1/-1;justify-content:flex-end;padding-top:4px}
     <h2 id="dlg-title">Segna un ascolto</h2>
     <label class="f wide" for="lf-disc">Disco<select id="lf-disc" required></select></label>
     <div class="wide newdisc" id="lf-new" hidden>
+      <div class="finder-n"><label class="f" for="lf-n-q">Cerca su Apple Music<input id="lf-n-q" type="search" placeholder="Titolo o artista" autocomplete="off" enterkeyhint="search"></label><div class="results" id="lf-n-results"></div></div>
       <label class="f" for="lf-n-title">Titolo<input id="lf-n-title" autocomplete="off"></label>
       <label class="f" for="lf-n-artist">Artista<input id="lf-n-artist" autocomplete="off"></label>
       <label class="f" for="lf-n-year">Anno<input id="lf-n-year" inputmode="numeric" autocomplete="off" placeholder="facoltativo"></label>
@@ -335,6 +369,7 @@ dialog .actions{grid-column:1/-1;justify-content:flex-end;padding-top:4px}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="store.js"></script>
+<script src="cerca.js"></script>
 <script>
 const LENSES=[
  {id:"insieme",name:"Insieme",hint:"Dall'inizio alla fine, senza fermarti. Che sensazione ti lascia il disco intero?"},
@@ -384,7 +419,7 @@ applyMonth();
 matchMedia("(prefers-color-scheme: dark)").addEventListener("change",applyMonth);
 
 let db=null, discs=new Map(), listens=[], loaded={d:false,l:false};
-const ui={tab:"oggi",sel:null,openHist:new Set(),day:"normale"};
+const ui={tab:"oggi",sel:null,openHist:new Set(),openCred:new Set(),day:"normale"};
 try{const t=localStorage.getItem("ascolta-tab");if(t)ui.tab=t;const d=JSON.parse(localStorage.getItem("ascolta-day")||"null");if(d&&d.date===todayStr()&&DAY[d.type])ui.day=d.type;}catch(e){}
 
 /* ---------- date ---------- */
@@ -517,7 +552,7 @@ function readyLine(d,p){
 function card(d){
   const p=progress(d),par=d.parent&&discs.get(d.parent),hist=ui.openHist.has(d.id);
   return '<article class="card">'+
-   '<div class="card-head"><div><h3>'+esc(d.title)+'</h3><div class="artist">'+esc(d.artist)+(d.year?' · '+esc(d.year):'')+'</div></div>'+phasePill(d,p)+'</div>'+
+   '<div class="card-head"><div class="who">'+coverImg(d)+'<div><h3>'+esc(d.title)+'</h3><div class="artist">'+esc(d.artist)+(d.year?' · '+esc(d.year):'')+'</div></div></div>'+phasePill(d,p)+'</div>'+
    (par?'<div class="from">↳ dalla rete di '+esc(par.title)+'</div>':'')+
    (isActive(d)?bar(p)+lensDots(p):(d.why?'<p class="muted" style="font-size:.9rem">'+esc(d.why)+'</p>':''))+
    readyLine(d,p)+
@@ -525,7 +560,7 @@ function card(d){
     (isActive(d)?'<button class="btn small" data-act="log" data-id="'+esc(d.id)+'">Segna ascolto</button>':'')+
     (isDiscovery(d)?'<button class="btn small" data-act="queue" data-id="'+esc(d.id)+'">Metti in coda</button><button class="btn small ghost" data-act="log" data-id="'+esc(d.id)+'" data-type="passaggio">Riascoltato</button><button class="btn small ghost" data-act="unqueue" data-id="'+esc(d.id)+'">Togli</button>':'')+
     (p.ls.length?'<button class="btn small ghost" data-act="hist" data-id="'+esc(d.id)+'" aria-expanded="'+hist+'">'+(hist?'Chiudi':'Storia')+' ('+p.ls.length+')</button>':'')+
-   '</div>'+
+   '</div>'+creditsBlock(d)+
    (hist?'<ul class="history">'+p.ls.slice().reverse().map(l=>'<li><span class="mono">'+fmt(dnum(l.date))+' · '+esc(MOMENTS[l.moment]||"")+' · '+((l.type||"attento")==="attento"?esc(LENS[l.lens]?.name||"attento"):"di passaggio")+'</span>'+(l.track?'<br>♪ '+esc(l.track):'')+(l.note?'<span class="nota" style="margin-top:6px">'+esc(l.note)+'</span>':'')+'</li>').join("")+'</ul>':'')+
   '</article>';
 }
@@ -546,7 +581,7 @@ function vOggi(){
   const items=[...P.attPick,...P.pasPick];
   h+='<section class="block"><div class="block-head"><h2>Il tuo ascolto di oggi</h2></div><div class="plan">';
   for(const x of items){
-    h+='<div class="task '+(x.kind==="attento"?"att":"pas")+'"><span class="kind">'+(x.kind==="attento"?"attento":"di passaggio")+'</span><div><h3>'+esc(x.d.title)+'</h3><div class="artist">'+esc(x.d.artist)+'</div><p class="why">'+esc(x.why)+'</p>'+bar(x.p,true)+'</div><button class="btn small" data-act="log" data-id="'+esc(x.d.id)+'" data-type="'+x.kind+'">Fatto</button></div>';
+    h+='<div class="task '+(x.kind==="attento"?"att":"pas")+'"><span class="kind">'+(x.kind==="attento"?"attento":"di passaggio")+'</span><div>'+coverImg(x.d,"sm").replace('class="cover sm"','class="cover sm" style="float:right;margin-left:12px"')+'<h3>'+esc(x.d.title)+'</h3><div class="artist">'+esc(x.d.artist)+'</div><p class="why">'+esc(x.why)+'</p>'+bar(x.p,true)+'</div><button class="btn small" data-act="log" data-id="'+esc(x.d.id)+'" data-type="'+x.kind+'">Fatto</button></div>';
   }
   for(const l of P.todays){const d=discs.get(l.disc);if(!d)continue;
     h+='<div class="task done"><span class="kind">fatto</span><div><h3>'+esc(d.title)+'</h3><p class="why">'+((l.type||"attento")==="attento"?"Ascolto attento · "+esc(LENS[l.lens]?.name||""):"Di passaggio")+'</p></div><span></span></div>';}
@@ -600,8 +635,10 @@ function vDischi(){
    (F.full.length?sec("Tuoi","Tornano da te dopo 3 mesi, 6 mesi, un anno e poi una volta all\'anno, con la lente che hai usato meno.",F.full):'')+
    (()=>{const sc=[...discs.values()].filter(isDiscovery).map(d=>({d,p:progress(d)})).sort((a,b)=>(b.p.last??0)-(a.p.last??0));return sc.length?sec("Scoperte · "+sc.length,"Dischi ascoltati fuori dal flusso. Restano qui senza impegno. Se uno ti prende, mettilo in coda e gli ascolti già fatti contano come prime tappe.",sc):'';})()+
    '<section class="block"><div class="block-head"><h2>In coda · '+F.coda.length+'</h2><p>L\'ordine in cui entreranno. Il primo entra da solo quando si libera il posto.</p></div>'+
-   (F.coda.length?'<ol class="qlist">'+F.coda.map((d,i)=>'<li><div><b>'+esc(d.title)+'</b> <span class="muted">· '+esc(d.artist)+(d.year?' · '+esc(d.year):'')+'</span>'+(d.why?'<p>'+esc(d.why)+'</p>':'')+(d.baseStage?'<p>Parte dalla tappa '+d.baseStage+'.</p>':'')+'</div><div class="actions">'+(i>0?'<button class="btn small ghost" data-act="top" data-id="'+esc(d.id)+'">Metti per primo</button>':'')+'<button class="btn small ghost" data-act="unqueue" data-id="'+esc(d.id)+'">'+(d.parent?'Rimetti tra i semi':'Togli')+'</button></div></li>').join("")+'</ol>':'<p class="muted">La coda è vuota. Quando un disco apre la rete, in Oggi ti propongo cosa mettere qui.</p>')+
-   '<details class="add" id="add-box"><summary>+ Aggiungi un disco alla coda</summary><form class="form" id="add-form" novalidate>'+
+   (F.coda.length?'<ol class="qlist">'+F.coda.map((d,i)=>'<li><div>'+coverImg(d,"sm").replace('class="cover sm"','class="cover sm" style="float:right;margin-left:10px"')+'<b>'+esc(d.title)+'</b> <span class="muted">· '+esc(d.artist)+(d.year?' · '+esc(d.year):'')+'</span>'+(d.why?'<p>'+esc(d.why)+'</p>':'')+(d.baseStage?'<p>Parte dalla tappa '+d.baseStage+'.</p>':'')+'</div><div class="actions">'+(i>0?'<button class="btn small ghost" data-act="top" data-id="'+esc(d.id)+'">Metti per primo</button>':'')+'<button class="btn small ghost" data-act="unqueue" data-id="'+esc(d.id)+'">'+(d.parent?'Rimetti tra i semi':'Togli')+'</button></div></li>').join("")+'</ol>':'<p class="muted">La coda è vuota. Quando un disco apre la rete, in Oggi ti propongo cosa mettere qui.</p>')+
+   '<details class="add" id="add-box"><summary>+ Aggiungi un disco alla coda</summary>'+
+   '<div class="finder"><label class="f" for="af-q">Cerca su Apple Music<input id="af-q" type="search" placeholder="Titolo o artista" autocomplete="off" enterkeyhint="search"></label><div class="results" id="af-results"></div><div id="af-picked"></div></div>'+
+   '<form class="form" id="add-form" novalidate>'+
     '<label class="f" for="af-title">Titolo<input id="af-title" required autocomplete="off"></label>'+
     '<label class="f" for="af-artist">Artista<input id="af-artist" required autocomplete="off"></label>'+
     '<label class="f" for="af-year">Anno<input id="af-year" inputmode="numeric" autocomplete="off"></label>'+
@@ -614,7 +651,7 @@ function vDischi(){
 function vRete(){
   return '<div class="view"><header class="ph"><div class="ph-top"><div class="eyebrow">In orizzontale</div>'+ill("rete")+'</div><h1>Rete</h1><p>Ogni punto è un disco. Più è grande, più tappe ha. Più è scuro, più l\'hai assorbito. I bordi tratteggiati sono i dischi in coda. Un disco apre due rami alla tappa 4, altri due alla 6 e gli ultimi due quando diventa tuo.</p></header><section class="block">'+
    '<div class="net"><div><div class="net-box"><svg id="graph" role="img" aria-label="Rete dei dischi collegati"></svg></div>'+
-   '<div class="legend"><span><i style="background:var(--deep)"></i>assorbito</span><span><i style="background:color-mix(in oklab,var(--deep) 30%,var(--groove))"></i>appena iniziato</span><span><i style="border:1.5px dashed var(--muted)"></i>in coda</span></div></div>'+
+   '<div class="legend"><span><i style="background:var(--deep)"></i>assorbito</span><span><i style="background:color-mix(in oklab,var(--deep) 30%,var(--groove))"></i>appena iniziato</span><span><i style="border:1.5px dashed var(--muted)"></i>in coda</span><span><i style="width:18px;height:0;border-radius:0;border-top:1.5px dashed var(--line)"></i>legame nei crediti</span></div></div>'+
    '<aside class="side" id="side" aria-live="polite">'+(ui.sel&&discs.get(ui.sel)?card(discs.get(ui.sel)):'<div class="empty"><b>Tocca un disco</b><span>Qui vedi la sua barra e quando è pronto per la prossima tappa.</span></div>')+'</aside></div></section></div>';
 }
 function vDiario(){
@@ -648,6 +685,11 @@ function drawGraph(){
   const nodes=[...discs.values()].filter(d=>isActive(d)||inQueue(d)).map(d=>({id:d.id,d,p:progress(d)}));
   const ids=new Set(nodes.map(n=>n.id));
   const links=nodes.filter(n=>n.d.parent&&ids.has(n.d.parent)).map(n=>({source:n.d.parent,target:n.id}));
+  /* legami trovati nei crediti, tratteggiati, oltre ai rami scelti */
+  const has=new Set(links.map(l=>l.source+">"+l.target));
+  for(let i=0;i<nodes.length;i++)for(let j=i+1;j<nodes.length;j++){const a=nodes[i],b=nodes[j];
+    if(has.has(a.id+">"+b.id)||has.has(b.id+">"+a.id))continue;
+    if(linkOf(a.d,b.d).score>=2)links.push({source:a.id,target:b.id,soft:true});}
   const W=svg.clientWidth||700,H=svg.clientHeight||560;
   const s=d3.select(svg).attr("viewBox",[0,0,W,H]);s.selectAll("*").remove();
   if(!nodes.length){s.append("text").attr("x",W/2).attr("y",H/2).attr("text-anchor","middle").attr("class","node-label").text("La rete compare quando aggiungi il primo disco");return;}
@@ -656,14 +698,14 @@ function drawGraph(){
   const r=n=>9+n.p.stage*2.2;
   const fill=n=>!isActive(n.d)?"var(--card)":"color-mix(in oklab,var(--deep) "+Math.round(14+n.p.intensity*86)+"%,var(--groove))";
   const stroke=n=>n.id===ui.sel?"var(--amber)":!isActive(n.d)?"var(--muted)":"var(--ink)";
-  const link=g.append("g").selectAll("line").data(links).join("line").style("stroke","var(--line)").attr("stroke-width",1.5);
+  const link=g.append("g").selectAll("line").data(links).join("line").style("stroke","var(--line)").attr("stroke-width",l=>l.soft?1:1.5).attr("stroke-dasharray",l=>l.soft?"3 4":null);
   const node=g.append("g").selectAll("g").data(nodes).join("g").style("cursor","pointer")
     .attr("tabindex",0).attr("role","button").attr("aria-label",n=>n.d.title+", "+n.d.artist)
     .on("click",(e,n)=>select(n.id)).on("keydown",(e,n)=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();select(n.id);}});
   node.append("circle").attr("r",r).style("fill",fill).style("stroke",stroke).attr("stroke-width",n=>n.id===ui.sel?3:1.2).attr("stroke-dasharray",n=>isActive(n.d)?null:"3 3");
   node.append("text").attr("class","node-label").attr("dy",n=>r(n)+13).attr("text-anchor","middle").text(n=>n.d.title.length>26?n.d.title.slice(0,25)+"…":n.d.title);
   node.call(d3.drag().on("start",(e,n)=>{if(!e.active)sim.alphaTarget(.3).restart();n.fx=n.x;n.fy=n.y;}).on("drag",(e,n)=>{n.fx=e.x;n.fy=e.y;}).on("end",(e,n)=>{if(!e.active)sim.alphaTarget(0);n.fx=null;n.fy=null;}));
-  sim=d3.forceSimulation(nodes).force("link",d3.forceLink(links).id(n=>n.id).distance(95)).force("charge",d3.forceManyBody().strength(-320))
+  sim=d3.forceSimulation(nodes).force("link",d3.forceLink(links).id(n=>n.id).distance(l=>l.soft?150:95).strength(l=>l.soft?.08:.7)).force("charge",d3.forceManyBody().strength(-320))
     .force("center",d3.forceCenter(W/2,H/2)).force("collide",d3.forceCollide().radius(n=>r(n)+18))
     .on("tick",()=>{link.attr("x1",l=>l.source.x).attr("y1",l=>l.source.y).attr("x2",l=>l.target.x).attr("y2",l=>l.target.y);node.attr("transform",n=>"translate("+n.x+","+n.y+")");});
   if(window.matchMedia("(prefers-reduced-motion: reduce)").matches){sim.stop();for(let i=0;i<200;i++)sim.tick();sim.on("tick")();}
@@ -679,6 +721,7 @@ function statsHtml(){
 }
 function render(){
   if(!(loaded.d&&loaded.l))return;
+  if(ui.tab==="dischi"&&document.getElementById("add-box")?.open)return;
   cache.clear();
   document.querySelectorAll(".tab[data-tab]").forEach(b=>b.setAttribute("aria-selected",b.dataset.tab===ui.tab));
   const V={oggi:vOggi,dischi:vDischi,rete:vRete,diario:vDiario,metodo:vMetodo};
@@ -688,6 +731,7 @@ function render(){
   window.scrollTo(0,y);
   if(ui.tab==="rete")drawGraph();
 }
+document.addEventListener("toggle",e=>{if(e.target.id!=="add-box")return;if(e.target.open)setupAddSearch();else{addPick=null;render();}},true);
 function setTab(t){ui.tab=t;try{localStorage.setItem("ascolta-tab",t);}catch(e){}window.scrollTo(0,0);render();}
 
 /* ---------- dialog ascolto ---------- */
@@ -703,7 +747,7 @@ function openLog(id,type){
     (sc.length?'<optgroup label="Scoperte">'+sc.map(opt).join("")+'</optgroup>':'');
   const fallback=F.primo[0]?.d.id||F.entering?.d.id||act[0]?.id||"__new";
   $("#lf-disc").value=id==="__new"||(id&&discs.get(id))?id:fallback;
-  ["#lf-n-title","#lf-n-artist","#lf-n-year"].forEach(s=>$(s).value="");$("#lf-n-dest").value="scoperta";
+  ["#lf-n-title","#lf-n-artist","#lf-n-year","#lf-n-q"].forEach(s=>$(s).value="");$("#lf-n-results").innerHTML="";logPick=null;setupLogSearch();$("#lf-n-dest").value="scoperta";
   $("#lf-lens").innerHTML=LENSES.map(l=>'<option value="'+l.id+'">'+esc(l.name)+'</option>').join("");
   (type==="passaggio"?$("#lf-t-pas"):$("#lf-t-att")).checked=true;
   $("#lf-date").value=todayStr();$("#lf-date").max=todayStr();
@@ -716,7 +760,7 @@ function curType(){return $("#lf-t-pas").checked?"passaggio":"attento";}
 function syncLens(){
   const v=$("#lf-disc").value,isNew=v==="__new";$("#lf-new").hidden=!isNew;
   const d=discs.get(v);$("#lf-lens").value=d?progress(d).sug.id:"insieme";syncType();
-  if(isNew)setTimeout(()=>$("#lf-n-title").focus(),0);
+  if(isNew)setTimeout(()=>$("#lf-n-q").focus(),0);
 }
 function syncType(){const att=curType()==="attento";$("#lf-lens-wrap").hidden=!att;const l=LENS[$("#lf-lens").value];$("#lf-hint").textContent=att?(l?l.hint:""):"Niente lente: basta lasciarlo girare.";}
 function closeLog(){const dlg=$("#dlg");if(dlg.close)dlg.close();else dlg.removeAttribute("open");}
@@ -739,8 +783,8 @@ $("#log-form").addEventListener("submit",async e=>{
   saving=true;$("#lf-save").disabled=true;
   try{
     if(isNew){
-      const ref=await db.collection("dischi").add({title:nt,artist:na,year:$("#lf-n-year").value.trim(),parent:null,status:dest,baseStage:0,why:"",order:dest==="coda"?maxOrder()+1:0,createdAt:Date.now()});
-      id=ref.id;
+      const ref=await db.collection("dischi").add({...(logPick?{meta:logPick.meta}:{}),title:nt,artist:na,year:$("#lf-n-year").value.trim(),parent:null,status:dest,baseStage:0,why:"",order:dest==="coda"?maxOrder()+1:0,createdAt:Date.now()});
+      id=ref.id;setTimeout(enrichAll,1500);
     } else if(inQueue(d)&&entering&&entering.d.id===id){
       /* è il primo della coda e c'è posto: entra in primo piano */
       const patch={status:"studio",enteredAt:date};
@@ -774,6 +818,7 @@ document.addEventListener("click",async e=>{
   const id=b.dataset.id,act=b.dataset.act;
   if(act==="log")return openLog(id,b.dataset.type);
   if(act==="logany")return openLog();
+  if(act==="cred"){ui.openCred.has(id)?ui.openCred.delete(id):ui.openCred.add(id);if(ui.tab==="rete")$("#side").innerHTML=card(discs.get(id));else render();return;}
   if(act==="hist"){ui.openHist.has(id)?ui.openHist.delete(id):ui.openHist.add(id);if(ui.tab==="rete")$("#side").innerHTML=card(discs.get(id));else render();return;}
   if(!db){toast("Accedi per salvare.");return;}
   b.disabled=true;
@@ -796,8 +841,10 @@ document.addEventListener("submit",async e=>{
   if(!title||!artist){toast("Servono almeno titolo e artista.");return;}
   try{
     const top=$("#af-pos").value==="top";
-    await db.collection("dischi").add({title,artist,year:$("#af-year").value.trim(),parent:$("#af-parent").value||null,status:"coda",baseStage:Number($("#af-base").value)||0,why:$("#af-why").value.trim(),order:top?minOrder()-1:maxOrder()+1,createdAt:Date.now()});
-    e.target.reset();toast(top?"Aggiunto come primo della coda.":"Aggiunto in fondo alla coda.");
+    const extra=addPick?{meta:addPick.meta,...(addPick.credits?{credits:addPick.credits}:{})}:{};
+    await db.collection("dischi").add({title,artist,year:$("#af-year").value.trim(),parent:$("#af-parent").value||null,status:"coda",baseStage:Number($("#af-base").value)||0,why:$("#af-why").value.trim(),order:top?minOrder()-1:maxOrder()+1,createdAt:Date.now(),...extra});
+    e.target.reset();addPick=null;const box=document.getElementById("add-box");if(box)box.open=false;
+    toast(top?"Aggiunto come primo della coda.":"Aggiunto in fondo alla coda.");setTimeout(enrichAll,1500);
   }catch(err){writeErr(err);}
 });
 
@@ -822,6 +869,7 @@ function start(){
   db.collection("ascolti").limit(1000).onSnapshot(snap=>{listens=snap.docs.map(d=>Object.assign({id:d.id},d.data())).filter(l=>typeof l.disc==="string"&&typeof l.date==="string"&&/^\d{4}-\d{2}-\d{2}$/.test(l.date));loaded.l=true;render();});
   Store.onStatus(st=>{$("#sync").textContent=!st.online?(st.pending?"offline · "+st.pending+" da inviare":"offline"):st.pending?st.pending+" da inviare":st.error?"non sincronizzato":"";});
   Store.start();
+  setTimeout(enrichAll,6000);
 }
 if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(e=>console.warn("Ascolta: niente modalità offline",e));
 (async()=>{
