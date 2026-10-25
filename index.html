@@ -191,6 +191,8 @@ a.linkbtn{display:inline-block}
 
 .seed{display:grid;grid-template-columns:minmax(0,1fr);gap:8px;padding:14px 0;border-top:1px solid var(--rule)}
 .seed b{font-weight:700}
+.shelf{display:flex;flex-direction:column;padding-top:10px}
+.shelf>.eyebrow{padding-bottom:6px}
 .seed p{font-size:.88rem;color:var(--ink-2)}
 
 /* la settimana, a sette colonne come un planner */
@@ -653,7 +655,21 @@ function vRete(){
   return '<div class="view"><header class="ph"><div class="ph-top"><div class="eyebrow">In orizzontale</div>'+ill("rete")+'</div><h1>Rete</h1><p>Ogni punto è un disco. Più è grande, più tappe ha. Più è scuro, più l\'hai assorbito. I bordi tratteggiati sono i dischi in coda. Un disco apre due rami alla tappa 4, altri due alla 6 e gli ultimi due quando diventa tuo.</p></header><section class="block">'+
    '<div class="net"><div><div class="net-box"><svg id="graph" role="img" aria-label="Rete dei dischi collegati"></svg></div>'+
    '<div class="legend"><span><i style="background:var(--deep)"></i>assorbito</span><span><i style="background:color-mix(in oklab,var(--deep) 30%,var(--groove))"></i>appena iniziato</span><span><i style="border:1.5px dashed var(--muted)"></i>in coda</span><span><i style="width:18px;height:0;border-radius:0;border-top:1.5px dashed var(--line)"></i>legame nei crediti</span></div></div>'+
-   '<aside class="side" id="side" aria-live="polite">'+(ui.sel&&discs.get(ui.sel)?card(discs.get(ui.sel)):'<div class="empty"><b>Tocca un disco</b><span>Qui vedi la sua barra e quando è pronto per la prossima tappa.</span></div>')+'</aside></div></section></div>';
+   '<aside class="side" id="side" aria-live="polite">'+(ui.sel&&discs.get(ui.sel)?card(discs.get(ui.sel)):'<div class="empty"><b>Tocca un disco</b><span>Qui vedi la sua barra e quando è pronto per la prossima tappa.</span></div>')+'</aside></div></section>'+shelf()+'</div>';
+}
+/* lo scaffale: tutti i semi, raggruppati per disco di provenienza. Solo da sfogliare: niente contatori, il ritmo resta all'app */
+function shelf(){
+  const seeds=[...discs.values()].filter(d=>d.status==="seme");
+  if(!seeds.length)return '';
+  const groups=new Map();
+  for(const d of seeds){const k=d.parent&&discs.get(d.parent)?d.parent:"";if(!groups.has(k))groups.set(k,[]);groups.get(k).push(d);}
+  const keys=[...groups.keys()].sort((a,b)=>(a?progress(discs.get(b)).stage-progress(discs.get(a)).stage:1)||0);
+  return '<section class="block"><div class="block-head"><div class="eyebrow">Per ispirarti</div><h2>Lo scaffale</h2><p>I dischi suggeriti dalla rete di quelli che studi. Niente fretta: sfogliali quando cerchi un ascolto nuovo. In Oggi l\'app continua a proporteli tre alla volta, quando è il momento.</p></div>'+
+   keys.map(k=>'<div class="shelf"><div class="eyebrow">'+(k?'Dalla rete di '+esc(discs.get(k).title):'Senza disco di provenienza')+'</div>'+
+     groups.get(k).sort((a,b)=>(a.order||0)-(b.order||0)).map(d=>'<div class="seed">'+
+       '<div>'+coverImg(d,"sm").replace('class="cover sm"','class="cover sm" style="float:right;margin-left:12px"')+'<b>'+esc(d.title)+'</b> <span class="muted">· '+esc(d.artist)+(d.year?' · '+esc(d.year):'')+'</span>'+(d.why?'<p>'+esc(d.why)+'</p>':'')+'</div>'+
+       '<div class="actions"><button class="btn small ghost" data-act="log" data-id="'+esc(d.id)+'" data-type="passaggio">Ascoltato</button><button class="btn small ghost" data-act="queue" data-id="'+esc(d.id)+'">Metti in coda</button>'+(d.meta&&d.meta.url?'<a class="linkbtn" href="'+esc(d.meta.url)+'" target="_blank" rel="noopener">Apri in Musica</a>':'')+'</div></div>').join("")+
+   '</div>').join("")+'</section>';
 }
 function vDiario(){
   const T=TODAY();
@@ -741,11 +757,13 @@ function openLog(id,type){
   const F=flow();
   const act=[...F.primo,...F.rot,...F.full].map(x=>x.d);
   const sc=[...discs.values()].filter(isDiscovery);
+  const seed=id&&discs.get(id)&&discs.get(id).status==="seme"?discs.get(id):null;
   const opt=d=>'<option value="'+esc(d.id)+'">'+esc(d.title)+' · '+esc(d.artist)+'</option>';
   $("#lf-disc").innerHTML='<option value="__new">＋ Un disco nuovo, mai segnato prima</option>'+
     (act.length?'<optgroup label="In ascolto">'+act.map(opt).join("")+'</optgroup>':'')+
     (F.coda.length?'<optgroup label="In coda">'+F.coda.map(opt).join("")+'</optgroup>':'')+
-    (sc.length?'<optgroup label="Scoperte">'+sc.map(opt).join("")+'</optgroup>':'');
+    (sc.length?'<optgroup label="Scoperte">'+sc.map(opt).join("")+'</optgroup>':'')+
+    (seed?'<optgroup label="Dallo scaffale">'+opt(seed)+'</optgroup>':'');
   const fallback=F.primo[0]?.d.id||F.entering?.d.id||act[0]?.id||"__new";
   $("#lf-disc").value=id==="__new"||(id&&discs.get(id))?id:fallback;
   ["#lf-n-title","#lf-n-artist","#lf-n-year","#lf-n-q"].forEach(s=>$(s).value="");$("#lf-n-results").innerHTML="";logPick=null;setupLogSearch();$("#lf-n-dest").value="scoperta";
@@ -793,11 +811,12 @@ $("#log-form").addEventListener("submit",async e=>{
       if(d.baseStage>0&&!d.baseDate)patch.baseDate=dstr(dnum(date)-GAP[Math.min(MAX-1,d.baseStage)]);
       await db.doc("dischi/"+id).update(patch);
     }
+    if(d&&d.status==="seme")await db.doc("dischi/"+id).update({status:"scoperta"});
     await db.collection("ascolti").add({disc:id,date,type,moment:$("#lf-moment").value,lens:type==="attento"?$("#lf-lens").value:null,track:$("#lf-track").value.trim().slice(0,200),note:$("#lf-note").value.trim().slice(0,4000),createdAt:Date.now()});
     closeLog();
     setTimeout(()=>{cache.clear();const dd=discs.get(id);if(!dd)return;const p=progress(dd);
       if(isNew){toast(dest==="coda"?"Disco aggiunto in coda, con il primo ascolto già fatto.":"Salvato tra le scoperte. Lo trovi in Dischi.");return;}
-      if(!isActive(dd)){toast(isDiscovery(dd)?"Riascolto salvato tra le scoperte.":"Salvato. Resta in coda, e questo ascolto conterà quando entra.");return;}
+      if(!isActive(dd)){toast(isDiscovery(dd)?(d&&d.status==="seme"?"Salvato tra le scoperte: lo trovi in Dischi. Se ti prende, mettilo in coda.":"Riascolto salvato tra le scoperte."):"Salvato. Resta in coda, e questo ascolto conterà quando entra.");return;}
       if(p.stage>before){
         toast("Tappa "+p.stage+" raggiunta"+(p.full?": il disco è tuo!":p.stage===4?": passa in rotazione.":"."));
       } else if(p.full&&before>=MAX)toast("Ritorno segnato. Il prossimo: "+fmt(p.nextDue)+".");
