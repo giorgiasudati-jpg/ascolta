@@ -271,6 +271,9 @@ aside.side{position:static}
 .entry .lens{display:inline-block;font-size:.6rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-left:8px;padding:2px 7px;border-radius:999px;border:1px solid var(--ink);vertical-align:2px}
 .entry .note{margin-top:6px;white-space:pre-wrap}
 .entry-acts{display:flex;flex-direction:column;align-items:flex-end;gap:2px}
+.entry-body{display:flex;gap:12px;align-items:flex-start;min-width:0}
+.entry-body .cover{width:52px;height:52px;border-radius:8px}
+.entry-text{min-width:0}
 .entry .trk{font-size:.86rem;color:var(--ink-2);margin-top:2px}
 
 /* metodo */
@@ -292,6 +295,119 @@ dialog .actions{grid-column:1/-1;justify-content:flex-end;padding-top:4px}
 
 .toast{position:fixed;left:50%;bottom:calc(150px + var(--safe-b));transform:translateX(-50%);background:var(--ink);color:var(--paper);font-size:.84rem;font-weight:600;padding:11px 18px;border-radius:999px;z-index:20;max-width:calc(100vw - 32px);text-align:center}
 .notice{border-top:1.5px solid var(--ink);padding:14px 0;font-size:.95rem}
+
+/* Oggi: tasselli, blocchi da toccare, calendario */
+.tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.tile{background:var(--tint);border-radius:20px;padding:14px 12px 12px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.tile b{font-weight:200;font-size:2.6rem;line-height:.9;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.tile b small{font-size:.45em;font-weight:300}
+.tile span{font-size:.6rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-2)}
+.tile.main{background:var(--ink);color:var(--paper)}
+.tile.main span{color:var(--paper);opacity:.8}
+.today-head{display:flex;flex-direction:column;gap:12px;padding-top:12px;border-top:1.5px solid var(--ink)}
+.today-head .daytype{max-width:none}
+.today-head .dt{min-height:36px;font-size:.82rem}
+.plan{gap:10px}
+.play{display:flex;gap:14px;align-items:center;width:100%;text-align:left;border:0;border-radius:24px;padding:12px 12px 12px 12px;cursor:pointer;background:var(--tint);color:var(--ink);transition:transform .1s}
+.play:active{transform:scale(.985)}
+.play.att{background:var(--ink);color:var(--paper)}
+.play.ret{background:transparent;border:1.5px dashed var(--rule)}
+.play-cover{flex:none;width:64px;height:64px;border-radius:14px;object-fit:cover;background:color-mix(in srgb,var(--ink) 20%,var(--paper));filter:grayscale(1) contrast(1.05)}
+.play.pas .play-cover,.play.ret .play-cover{mix-blend-mode:multiply}
+.play-cover.ph{background:radial-gradient(circle,var(--paper) 0 9%,var(--ink) 10% 100%)}
+.play-cover.ph{mix-blend-mode:normal!important}
+.play.att .play-cover.ph{background:radial-gradient(circle,var(--ink) 0 9%,var(--paper) 10% 100%)}
+.play-main{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}
+.play-main .kind{font-size:.6rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;opacity:.75}
+.play-main b{font-stretch:112%;font-weight:800;font-size:1.25rem;line-height:1.1;overflow-wrap:anywhere}
+.play-main small{font-size:.86rem;opacity:.8}
+.play-main small.line{font-size:.8rem;opacity:.7}
+.go{flex:none;width:50px;height:50px;border-radius:50%;display:grid;place-items:center;font-size:1.35rem;font-weight:700;background:var(--ink);color:var(--paper)}
+.play.att .go{background:var(--paper);color:var(--ink)}
+.done-row{display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;text-align:left;padding:12px 16px;border-radius:18px;border:1.5px solid var(--rule);background:transparent;color:var(--ink);cursor:pointer;font-size:.92rem}
+.done-row b{font-weight:700}
+.done-row .muted{font-size:.78rem;white-space:nowrap}
+.cal-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding-top:12px;border-top:1.5px solid var(--ink)}
+.cal-head h2{font-stretch:125%;font-weight:900;text-transform:uppercase;font-size:1.25rem;text-align:center}
+.cal-btn{width:42px;height:42px;border-radius:50%;border:0;background:var(--tint);color:var(--ink);font-size:1.4rem;line-height:1;cursor:pointer}
+.calg{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px}
+.calg .dow{font-size:.6rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-2);text-align:center;padding-bottom:2px}
+.cd{aspect-ratio:1/1;border:0;border-radius:12px;background:var(--tint);color:var(--ink);font-weight:700;font-size:.92rem;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;font-variant-numeric:tabular-nums;padding:0}
+.cd i{font-style:normal;font-size:.7rem;line-height:.6;letter-spacing:1px}
+.cd.out{visibility:hidden;pointer-events:none}
+.cd.p{background:color-mix(in srgb,var(--ink) 35%,var(--paper))}
+.cd.a{background:var(--ink);color:var(--paper)}
+.cd.fut{color:var(--ink-2)}
+.cd.today{box-shadow:inset 0 0 0 2px var(--ink)}
+.cd.a.today{box-shadow:inset 0 0 0 2px var(--paper),0 0 0 2px var(--ink)}
+.cd.sel{outline:2.5px solid var(--ink);outline-offset:2px}
+.daybox{background:var(--tint);border-radius:22px;padding:14px 16px;display:flex;flex-direction:column;gap:6px}
+.daybox-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.daybox-head h3{font-size:.68rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-2)}
+.daybox-head + .entry{border-top:0}
+
+/* idee dalla reference: data protagonista, pillole, angoli, agenda, anno */
+.datehead{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;padding-top:18px}
+.dh{display:flex;flex-direction:column;line-height:.9;min-width:0}
+.dh-day{font-size:.72rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-2);margin-bottom:6px}
+.dh-num{font-stretch:125%;font-weight:900;font-size:clamp(5rem,26vw,8.5rem);letter-spacing:-.04em;line-height:.8}
+.dh-month{font-stretch:125%;font-weight:200;text-transform:uppercase;font-size:clamp(1.9rem,9vw,3rem);letter-spacing:-.01em;margin-top:6px}
+.dh-side .ill{width:110px;height:110px}
+.pills{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.pill-btn{min-height:38px;padding:0 16px;border-radius:999px;border:1.5px solid var(--ink);background:transparent;color:var(--ink);font-weight:600;font-size:.84rem;cursor:pointer}
+.pill-btn[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.plus{width:40px;height:40px;border-radius:50%;border:1.5px solid var(--ink);background:transparent;color:var(--ink);font-size:1.5rem;font-weight:300;line-height:1;cursor:pointer;display:grid;place-items:center;margin-left:auto}
+.plus.sm{width:32px;height:32px;font-size:1.2rem;margin-left:0}
+.chip{display:inline-block;font-size:.66rem;font-weight:600;padding:3px 9px;border-radius:999px;background:color-mix(in srgb,currentColor 14%,transparent);white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+/* blocchi: titolo in alto a sinistra, tappa in alto a destra, etichette in basso a sinistra, copertina in basso a destra */
+.play{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:auto auto;gap:14px 12px;align-items:start;padding:16px 16px 14px 18px;min-height:150px}
+.pc.tl{display:flex;flex-direction:column;gap:2px;min-width:0}
+.pc.tl .kind{font-size:.6rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;opacity:.75}
+.pc.tl b{font-stretch:112%;font-weight:800;font-size:1.35rem;line-height:1.08;overflow-wrap:anywhere}
+.pc.tl small{font-size:.86rem;opacity:.8}
+.pc.tr{display:flex;flex-direction:column;align-items:flex-end;text-align:right}
+.pc.tr .stage{font-weight:200;font-size:1.9rem;line-height:.9;letter-spacing:-.02em;white-space:nowrap}
+.pc.tr .stage-l{font-size:.58rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;opacity:.7;margin-top:3px}
+.pc.bl{align-self:end;display:flex;flex-wrap:wrap;gap:5px}
+.pc.br{align-self:end;display:flex;align-items:center;gap:8px}
+.pc.br .play-cover{width:58px;height:58px;border-radius:12px}
+.pc.br .go{width:44px;height:44px}
+/* cambio mese con i mesi vicini sbiaditi */
+.cal-head{gap:6px}
+.cal-side{border:0;background:none;color:var(--ink);opacity:.4;font-weight:700;font-size:.78rem;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;padding:6px 2px;min-width:2.6rem}
+.cal-side:first-child{text-align:left}.cal-side:last-child{text-align:right}
+.cal-head h2{flex:1;font-size:clamp(.95rem,4.4vw,1.25rem);white-space:nowrap}
+.cal .pills{padding-top:12px;border-top:1.5px solid var(--ink)}
+.cal .cal-head{border-top:0;padding-top:4px}
+/* agenda: etichetta del giorno impilata, linea sottile, ascolti, copertine sovrapposte */
+.agenda{display:flex;flex-direction:column;gap:10px}
+.ag-day{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:0 14px;align-items:stretch;background:var(--tint);border-radius:22px;padding:14px 14px 14px 16px;color:var(--ink)}
+.ag-day.a{background:var(--ink);color:var(--paper)}
+.ag-date{display:flex;flex-direction:column;align-items:flex-start;padding-right:14px;border-right:1px solid color-mix(in srgb,currentColor 30%,transparent);line-height:1;min-width:3.4rem}
+.ag-date span{font-size:.72rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;opacity:.85}
+.ag-date b{font-weight:200;font-size:2.5rem;letter-spacing:-.03em;margin:2px 0}
+.ag-list{display:flex;flex-direction:column;gap:10px;min-width:0}
+.ag-item{border:0;background:none;color:inherit;text-align:left;padding:0;cursor:pointer;min-width:0}
+.ag-item b{font-weight:800;font-size:1rem;display:block}
+.ag-note{display:block;font-size:.8rem;opacity:.75;margin-top:4px;padding-left:10px;border-left:2px solid currentColor;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.ag-side{display:flex;flex-direction:column;justify-content:space-between;align-items:flex-end;gap:10px}
+.ag-day .plus.sm{border-color:currentColor;color:inherit}
+.stack{display:flex;flex-direction:row-reverse}
+.stack img,.stack .ph,.stack .more{width:34px;height:34px;border-radius:50%;object-fit:cover;border:2px solid var(--tint);margin-left:-10px;filter:grayscale(1);background:color-mix(in srgb,currentColor 25%,transparent)}
+.ag-day.a .stack img,.ag-day.a .stack .ph,.ag-day.a .stack .more{border-color:var(--ink)}
+.stack .more{display:grid;place-items:center;font-size:.65rem;font-weight:700;filter:none}
+/* anno: dodici card, ognuna nel colore del suo mese */
+.year{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.ycard{background:var(--yp);color:var(--yi);border:0;border-radius:20px;padding:12px 10px 10px;display:flex;flex-direction:column;gap:8px;cursor:pointer;text-align:left;min-width:0}
+.ytitle{font-stretch:112%;font-weight:800;font-size:1rem;text-transform:capitalize;display:flex;justify-content:space-between;align-items:baseline;gap:6px}
+.ytitle small{font-size:.6rem;font-weight:700;letter-spacing:.06em;text-transform:none;opacity:.75;white-space:nowrap}
+.ygrid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.ygrid i{font-style:normal;font-size:.56rem;font-weight:600;text-align:center;line-height:1.75;border-radius:50%;font-variant-numeric:tabular-nums}
+.ygrid i.p{box-shadow:inset 0 0 0 1px var(--yi)}
+.ygrid i.a{background:var(--yi);color:var(--yp)}
+.ygrid i.t{text-decoration:underline;text-underline-offset:2px;font-weight:900}
+@media (min-width:640px){.year{grid-template-columns:repeat(3,minmax(0,1fr))}}
 
 /* schermi più larghi: più colonne dove servono */
 @media (min-width:640px){
@@ -423,7 +539,8 @@ applyMonth();
 matchMedia("(prefers-color-scheme: dark)").addEventListener("change",applyMonth);
 
 let db=null, discs=new Map(), listens=[], loaded={d:false,l:false};
-const ui={tab:"oggi",sel:null,openHist:new Set(),openCred:new Set(),day:"normale"};
+const ui={tab:"oggi",sel:null,openHist:new Set(),openCred:new Set(),day:"normale",calOff:0,calSel:null,calView:null,diaryView:null};
+try{ui.calView=localStorage.getItem("ascolta-calView");ui.diaryView=localStorage.getItem("ascolta-diaryView");}catch(e){}
 try{const t=localStorage.getItem("ascolta-tab");if(t)ui.tab=t;const d=JSON.parse(localStorage.getItem("ascolta-day")||"null");if(d&&d.date===todayStr()&&DAY[d.type])ui.day=d.type;}catch(e){}
 
 /* ---------- date ---------- */
@@ -573,69 +690,135 @@ function mini(x,extra){
 }
 
 /* ---------- viste ---------- */
-function vOggi(){
-  const P=todayPlan(),F=P.F,T=TODAY();
-  let h='<div class="view">';
-  /* giornata */
-  h+='<header class="ph"><div class="ph-top"><div class="eyebrow">'+fmt(T,{weekday:"long",day:"numeric",month:"long"})+'</div>'+ill("disco")+'</div><h1>Oggi</h1></header>';
-  h+='<section class="block"><div class="eyebrow">Com\'è la giornata?</div>'+
-   '<div class="daytype" role="group" aria-label="Tipo di giornata">'+Object.entries(DAY).map(([k,v])=>'<button class="dt" data-day="'+k+'" aria-pressed="'+(ui.day===k)+'">'+v.name+'</button>').join("")+'</div>'+
-   '<p class="daydesc">'+esc(DAY[ui.day].name)+': '+esc(DAY[ui.day].desc)+'. Se salti un giorno non resta nessun arretrato.</p></section>';
-  /* piano */
-  const items=[...P.attPick,...P.pasPick];
-  h+='<section class="block"><div class="block-head"><h2>Il tuo ascolto di oggi</h2></div><div class="plan">';
-  for(const x of items){
-    h+='<div class="task '+(x.kind==="attento"?"att":"pas")+'"><span class="kind">'+(x.kind==="attento"?"attento":"di passaggio")+'</span><div>'+coverImg(x.d,"sm").replace('class="cover sm"','class="cover sm" style="float:right;margin-left:12px"')+'<h3>'+esc(x.d.title)+'</h3><div class="artist">'+esc(x.d.artist)+'</div><p class="why">'+esc(x.why)+'</p>'+bar(x.p,true)+'</div><button class="btn small" data-act="log" data-id="'+esc(x.d.id)+'" data-type="'+x.kind+'">Fatto</button></div>';
-  }
-  for(const l of P.todays){const d=discs.get(l.disc);if(!d)continue;
-    h+='<div class="task done"><span class="kind">fatto</span><div><h3>'+esc(d.title)+'</h3><p class="why">'+((l.type||"attento")==="attento"?"Ascolto attento · "+esc(LENS[l.lens]?.name||""):"Di passaggio")+'</p></div><span></span></div>';}
-  if(!items.length){
-    let msg;
-    if(P.todays.length)msg='<b>Per oggi hai fatto quello che serviva.</b><span>Tutto il resto può aspettare.</span>';
-    else if(ui.day==="piena")msg='<b>Oggi va bene anche niente.</b><span>Nessun disco ha bisogno di te oggi. Se in tragitto ti va di ascoltare qualcosa, segnalo pure.</span>';
-    else if(!F.act.length&&!F.coda.length)msg='<b>Non c\'è ancora nessun disco.</b><span>Aggiungine uno dalla scheda Dischi.</span>';
-    else msg='<b>'+(P.ret?'Nessun disco in studio è pronto oggi.':'Nessun disco è pronto per oggi.')+'</b><span>'+(P.nextAtt?'Il prossimo ascolto attento: '+esc(P.nextAtt.d.title)+', '+when(P.nextAtt.p)+'.':'Goditi un ascolto libero, se ne hai voglia.')+'</span>';
-    h+='<div class="empty">'+(P.ret?'':ill("cuffie"))+msg+'</div>';
-  } else if(P.attPick.length===0&&P.cap.a>P.doneA&&P.nextAtt){
-    h+='<p class="muted" style="font-size:.92rem">Nessun ascolto attento è pronto oggi. Il prossimo: '+esc(P.nextAtt.d.title)+', '+when(P.nextAtt.p)+'.</p>';
-  }
-  if(P.ret){const x=P.ret,s=since(T-x.p.last);
-    h+='<div class="task ret"><span class="kind">un ritorno · se ti va</span><div><h3>'+esc(x.d.title)+'</h3><div class="artist">'+esc(x.d.artist)+'</div><p class="why">'+(s.startsWith("un ")?"È passato ":"Sono passati ")+s+' dall\'ultima volta. Prova la lente '+esc(x.p.sug.name)+': '+esc(x.p.sug.hint.charAt(0).toLowerCase()+x.p.sug.hint.slice(1))+'</p>'+bar(x.p,true)+'</div><button class="btn small ghost" data-act="log" data-id="'+esc(x.d.id)+'" data-type="attento">Fatto</button></div>';}
-  h+='</div></section>';
-  /* flusso */
+/* il flusso dei dischi: primo piano, rotazione, prossimo in coda (sta nella scheda Dischi) */
+function flowHtml(F,T){
   const primo=F.primo[0]||F.entering;
-  h+='<section class="block"><div class="block-head"><div class="eyebrow">Il flusso</div><h2>Dove sono i tuoi dischi</h2><p>Un disco alla volta in primo piano, finché non arriva alla tappa 4. Poi passa in rotazione e lascia il posto al primo della coda.</p></div><div class="flow">';
-  h+='<div class="lane"><div class="eyebrow"><span>Primo piano</span></div>'+(primo?mini(primo,primo.entering?'Entra adesso: il primo ascolto è pronto.':'tappa '+primo.p.stage+' di 4 per passare in rotazione')+(F.primo.length>1?'<div class="mini slot">Ci sono altri '+(F.primo.length-1)+' dischi in fase iniziale: li ho messi in fila dopo questo.</div>':''):'<div class="mini slot">'+(F.coda.length?'In attesa che si liberi un posto in rotazione.':'Vuoto. Aggiungi un disco alla coda.')+'</div>')+'</div>';
+  let h='<section class="block"><div class="block-head"><div class="eyebrow">Il flusso</div><h2>Dove sono i tuoi dischi</h2></div><div class="flow">';
+  h+='<div class="lane"><div class="eyebrow"><span>Primo piano</span></div>'+(primo?mini(primo,primo.entering?'Entra adesso: il primo ascolto è pronto.':'tappa '+primo.p.stage+' di 4 per passare in rotazione')+(F.primo.length>1?'<div class="mini slot">Altri '+(F.primo.length-1)+' dischi in fase iniziale, in fila dopo questo.</div>':''):'<div class="mini slot">'+(F.coda.length?'In attesa che si liberi un posto in rotazione.':'Vuoto. Aggiungi un disco alla coda.')+'</div>')+'</div>';
   h+='<div class="lane"><div class="eyebrow"><span>In rotazione</span><span>'+F.rot.length+'/'+ROT+'</span></div>'+F.rot.map(x=>mini(x,'tappa '+x.p.stage+' · '+(T>=x.p.nextDue?'pronto':T>=x.p.earliest?'pronto · ideale il '+fmt(x.p.nextDue):'dal '+fmt(x.p.earliest)+' · ideale il '+fmt(x.p.nextDue)))).join("")+(F.rot.length<ROT?'<div class="mini slot">'+(ROT-F.rot.length)+(ROT-F.rot.length===1?' posto libero':' posti liberi')+'</div>':'')+'</div>';
   const next=F.coda[0];
   h+='<div class="lane"><div class="eyebrow"><span>Prossimo in coda</span><span>'+F.coda.length+'</span></div>'+(next&&!F.entering?'<div class="mini"><b>'+esc(next.title)+'</b><span class="muted" style="font-size:.88rem">'+esc(next.artist)+'</span><div class="m">'+esc(F.waitWhy)+'</div></div>':F.entering&&F.coda[1]?'<div class="mini"><b>'+esc(F.coda[1].title)+'</b><span class="muted" style="font-size:.88rem">'+esc(F.coda[1].artist)+'</span><div class="m">Dopo '+esc(F.entering.d.title)+'.</div></div>':'<div class="mini slot">La coda è vuota.</div>')+'</div>';
+  return h+'</div></section>';
+}
+/* un disco da ascoltare: tutto il blocco si tocca; ogni informazione ha il suo angolo */
+function playBlock(x,kind,label,cls,chips){
+  const d=x.d,p=x.p,c=d.meta&&d.meta.cover;
+  const stage=p.full?'tuo':p.stage===0?'nuovo':p.stage+' → '+(p.stage+1);
+  return '<button type="button" class="play '+cls+'" data-act="log" data-id="'+esc(d.id)+'" data-type="'+kind+'">'+
+    '<span class="pc tl"><span class="kind">'+label+'</span><b>'+esc(d.title)+'</b><small>'+esc(d.artist)+'</small></span>'+
+    '<span class="pc tr"><span class="stage">'+stage+'</span><span class="stage-l">'+(p.full?'':'tappa')+'</span></span>'+
+    '<span class="pc bl">'+chips.map(t=>'<span class="chip">'+t+'</span>').join("")+'</span>'+
+    '<span class="pc br">'+(c?'<img class="play-cover" src="'+esc(c)+'" alt="" loading="lazy">':'<span class="play-cover ph"></span>')+'<span class="go" aria-hidden="true">→</span></span></button>';
+}
+/* copertine sovrapposte, come gli avatar */
+function coverStack(ls){
+  const ds=[...new Set(ls.map(l=>l.disc))].map(id=>discs.get(id)).filter(Boolean);
+  return '<span class="stack">'+ds.slice(0,4).map(d=>d.meta&&d.meta.cover?'<img src="'+esc(d.meta.cover)+'" alt="">':'<span class="ph"></span>').join("")+(ds.length>4?'<span class="more">+'+(ds.length-4)+'</span>':'')+'</span>';
+}
+/* il calendario: tre viste (Mese, Agenda, Anno). key dice quale vista ricordare: Oggi e Diario hanno la loro */
+function calHtml(key,def){
+  const view=ui[key]||def;
+  const now=new Date(),base=new Date(now.getFullYear(),now.getMonth()+(ui.calOff||0),1);
+  const y=base.getFullYear(),m=base.getMonth();
+  const by={};for(const l of listens)(by[l.date]=by[l.date]||[]).push(l);
+  const mname=k=>new Date(y,k,1).toLocaleDateString("it-IT",{month:"short"}).replace(".","");
+  const pills='<div class="pills" role="group" aria-label="Vista">'+[["mese","Mese"],["agenda","Agenda"],["anno","Anno"]].map(([k,t])=>'<button type="button" class="pill-btn" data-act="calview" data-id="'+key+':'+k+'" aria-pressed="'+(view===k)+'">'+t+'</button>').join("")+'<button type="button" class="plus" data-act="logany" aria-label="Segna un ascolto">+</button></div>';
+  let h='<section class="block cal">'+pills;
+  if(view==="anno"){
+    const yr=now.getFullYear()+Math.floor((now.getMonth()+(ui.calOff||0))/12);
+    h+='<div class="cal-head"><button type="button" class="cal-side" data-act="calyear" data-id="-1">'+(yr-1)+'</button><button type="button" class="cal-btn" data-act="calyear" data-id="-1" aria-label="Anno precedente">‹</button><h2>'+yr+'</h2><button type="button" class="cal-btn" data-act="calyear" data-id="1" aria-label="Anno successivo">›</button><button type="button" class="cal-side" data-act="calyear" data-id="1">'+(yr+1)+'</button></div><div class="year">';
+    for(let k=0;k<12;k++){
+      const [pp,ii]=MONTHS[k],first=(new Date(yr,k,1).getDay()+6)%7,days=new Date(yr,k+1,0).getDate();
+      let g='';for(let q=0;q<first;q++)g+='<i></i>';
+      for(let dd=1;dd<=days;dd++){const ds=yr+"-"+String(k+1).padStart(2,"0")+"-"+String(dd).padStart(2,"0"),ls=by[ds]||[],a=ls.some(l=>(l.type||"attento")==="attento");g+='<i class="'+(a?'a':ls.length?'p':'')+(ds===todayStr()?' t':'')+'">'+dd+'</i>';}
+      const n=Object.keys(by).filter(ds=>ds.slice(0,7)===yr+"-"+String(k+1).padStart(2,"0")).reduce((t,ds)=>t+by[ds].length,0);
+      h+='<button type="button" class="ycard" style="--yp:'+pp+';--yi:'+ii+'" data-act="calmonth" data-id="'+yr+'-'+k+'"><span class="ytitle">'+new Date(yr,k,1).toLocaleDateString("it-IT",{month:"long"})+'<small>'+(n?n+(n===1?' ascolto':' ascolti'):'')+'</small></span><span class="ygrid">'+g+'</span></button>';
+    }
+    return h+'</div></section>';
+  }
+  const title=base.toLocaleDateString("it-IT",{month:"long",year:"numeric"});
+  h+='<div class="cal-head"><button type="button" class="cal-side" data-act="calprev">'+mname(m-1)+'</button><button type="button" class="cal-btn" data-act="calprev" aria-label="Mese precedente">‹</button><h2>'+esc(title)+'</h2><button type="button" class="cal-btn" data-act="calnext" aria-label="Mese successivo">›</button><button type="button" class="cal-side" data-act="calnext">'+mname(m+1)+'</button></div>';
+  if(view==="agenda"){
+    const ym=y+"-"+String(m+1).padStart(2,"0"),days=Object.keys(by).filter(ds=>ds.slice(0,7)===ym).sort().reverse(),order={mattina:0,pomeriggio:1,sera:2,notte:3};
+    if(!days.length)return h+'<div class="empty"><b>Nessun ascolto in questo mese.</b><span>Tocca + per segnarne uno.</span></div></section>';
+    h+='<div class="agenda">'+days.map(ds=>{
+      const ls=by[ds].slice().sort((a,b)=>(order[a.moment]??9)-(order[b.moment]??9)),a=ls.some(l=>(l.type||"attento")==="attento"),n=dnum(ds);
+      return '<div class="ag-day'+(a?' a':'')+'"><div class="ag-date"><span>'+esc(fmt(n,{weekday:"short",day:undefined,month:undefined}).replace(".",""))+'</span><b>'+Number(ds.slice(8))+'</b><span>'+esc(fmt(n,{month:"short",day:undefined}).replace(".",""))+'</span></div>'+
+        '<div class="ag-list">'+ls.map(l=>{const d=discs.get(l.disc),att=(l.type||"attento")==="attento";return '<button type="button" class="ag-item" data-act="edit" data-id="'+esc(l.id)+'"><b>'+esc(d?d.title:"Disco rimosso")+'</b><span class="chips"><span class="chip">'+(att?esc(LENS[l.lens]?.name||"attento"):"di passaggio")+'</span>'+(l.moment?'<span class="chip">'+esc(l.moment)+'</span>':'')+(l.track?'<span class="chip">♪ '+esc(l.track)+'</span>':'')+'</span>'+(l.note?'<span class="ag-note">'+esc(l.note)+'</span>':'')+'</button>';}).join("")+'</div>'+
+        '<div class="ag-side">'+coverStack(ls)+'<button type="button" class="plus sm" data-act="logday" data-id="'+ds+'" aria-label="Segna un ascolto il '+esc(fmt(n))+'">+</button></div></div>';
+    }).join("")+'</div>';
+    return h+'</section>';
+  }
+  const first=(base.getDay()+6)%7,days=new Date(y,m+1,0).getDate(),td=todayStr(),sel=ui.calSel||td;
+  let g='';
+  for(let i=0;i<first;i++)g+='<span class="cd out"></span>';
+  for(let d=1;d<=days;d++){
+    const ds=y+"-"+String(m+1).padStart(2,"0")+"-"+String(d).padStart(2,"0"),ls=by[ds]||[];
+    const a=ls.filter(l=>(l.type||"attento")==="attento").length;
+    g+='<button type="button" class="cd'+(a?' a':ls.length?' p':'')+(ds===td?' today':'')+(ds===sel?' sel':'')+(ds>td?' fut':'')+'" data-act="cal" data-id="'+ds+'" aria-label="'+d+(ls.length?', '+ls.length+(ls.length===1?' ascolto':' ascolti'):'')+'">'+d+(ls.length>1?'<i>'+'•'.repeat(Math.min(ls.length,3))+'</i>':'')+'</button>';
+  }
+  return h+'<div class="calg"><span class="dow">lu</span><span class="dow">ma</span><span class="dow">me</span><span class="dow">gi</span><span class="dow">ve</span><span class="dow">sa</span><span class="dow">do</span>'+g+'</div>'+
+    '<div class="legend"><span><i style="background:var(--ink);border-radius:3px"></i>ascolto attento</span><span><i style="background:color-mix(in srgb,var(--ink) 35%,var(--paper));border-radius:3px"></i>di passaggio</span></div>'+
+    dayBox(sel)+'</section>';
+}
+function entryHtml(l){
+  const d=discs.get(l.disc),att=(l.type||"attento")==="attento";
+  return '<div class="entry"><span class="when">'+esc(MOMENTS[l.moment]||"")+'</span><div class="entry-body">'+(d?coverImg(d,"sm"):'')+'<div class="entry-text"><b>'+esc(d?d.title:"Disco rimosso")+'</b>'+(d?' <span class="muted">· '+esc(d.artist)+'</span>':'')+'<span class="lens">'+(att?esc(LENS[l.lens]?.name||"attento"):"di passaggio")+'</span>'+(l.track?'<div class="trk">♪ '+esc(l.track)+'</div>':'')+(l.note?'<div class="note nota">'+esc(l.note)+'</div>':'')+'</div></div><div class="entry-acts"><button class="linkbtn" data-act="edit" data-id="'+esc(l.id)+'">Modifica</button><button class="linkbtn" data-act="del" data-id="'+esc(l.id)+'">Elimina</button></div></div>';
+}
+function dayBox(ds){
+  const ls=listens.filter(l=>l.date===ds),order={mattina:0,pomeriggio:1,sera:2,notte:3};
+  ls.sort((a,b)=>(order[a.moment]??9)-(order[b.moment]??9));
+  return '<div class="daybox"><div class="daybox-head"><h3>'+esc(fmt(dnum(ds),{weekday:"long",day:"numeric",month:"long"}))+'</h3>'+(ds<=todayStr()?'<button type="button" class="btn small" data-act="logday" data-id="'+ds+'">+ Segna un ascolto</button>':'')+'</div>'+
+    (ls.length?ls.map(entryHtml).join(""):'<p class="muted" style="font-size:.9rem">'+(ds>todayStr()?'Un giorno che deve ancora arrivare.':'Nessun ascolto segnato.')+'</p>')+'</div>';
+}
+function vOggi(){
+  const P=todayPlan(),F=P.F,T=TODAY();
+  const ym=todayStr().slice(0,7),mon=listens.filter(l=>l.date.slice(0,7)===ym),monA=mon.filter(l=>(l.type||"attento")==="attento").length;
+  const monthName=new Date().toLocaleDateString("it-IT",{month:"long"});
+  let h='<div class="view">';
+  const now=new Date();
+  h+='<header class="datehead"><div class="dh"><span class="dh-day">'+esc(now.toLocaleDateString("it-IT",{weekday:"long"}))+'</span><span class="dh-num">'+now.getDate()+'</span><span class="dh-month">'+esc(now.toLocaleDateString("it-IT",{month:"long"}))+'</span></div><div class="dh-side">'+ill("disco")+'</div></header>';
+  /* i numeri a colpo d'occhio */
+  h+='<div class="tiles"><div class="tile main"><b>'+mon.length+'</b><span>ascolti a '+esc(monthName)+'</span></div><div class="tile"><b>'+monA+'</b><span>attenti</span></div><div class="tile"><b>'+F.rot.length+'<small>/'+ROT+'</small></b><span>in rotazione</span></div></div>';
+  /* da ascoltare oggi */
+  h+='<section class="block"><div class="today-head"><h2>Da ascoltare oggi</h2><div class="pills" role="group" aria-label="Com\'è la giornata">'+Object.entries(DAY).map(([k,v])=>'<button class="pill-btn" data-day="'+k+'" aria-pressed="'+(ui.day===k)+'" title="'+esc(v.desc)+'">'+v.name+'</button>').join("")+'</div></div><div class="plan">';
+  for(const x of P.attPick)h+=playBlock(x,"attento","ascolto attento","att",["lente "+esc(x.p.sug.name)]);
+  for(const x of P.pasPick)h+=playBlock(x,"passaggio","di passaggio","pas",["anche distratto"]);
+  if(P.ret){const x=P.ret;h+=playBlock(x,"attento","un ritorno · se ti va","ret",[esc(since(T-x.p.last))+" fa","lente "+esc(x.p.sug.name)]);}
+  for(const l of P.todays){const d=discs.get(l.disc);if(!d)continue;
+    h+='<button type="button" class="done-row" data-act="edit" data-id="'+esc(l.id)+'"><span>✓ <b>'+esc(d.title)+'</b> · '+((l.type||"attento")==="attento"?esc(LENS[l.lens]?.name||"attento"):"di passaggio")+'</span><span class="muted">'+(l.track||l.note?'modifica':'aggiungi note')+'</span></button>';}
+  const items=P.attPick.length+P.pasPick.length;
+  if(!items&&!P.ret){
+    let msg;
+    if(P.todays.length)msg='<b>Per oggi hai fatto quello che serviva.</b><span>Tutto il resto può aspettare.</span>';
+    else if(ui.day==="piena")msg='<b>Oggi va bene anche niente.</b><span>Se ti va di ascoltare qualcosa, segnalo con il +.</span>';
+    else if(!F.act.length&&!F.coda.length)msg='<b>Non c\'è ancora nessun disco.</b><span>Aggiungine uno dalla scheda Dischi.</span>';
+    else msg='<b>Nessun disco è pronto oggi.</b><span>'+(P.nextAtt?'Il prossimo: '+esc(P.nextAtt.d.title)+', '+when(P.nextAtt.p)+'.':'Goditi un ascolto libero, se ne hai voglia.')+'</span>';
+    h+='<div class="empty">'+(P.todays.length?'':ill("cuffie"))+msg+'</div>';
+  } else if(!P.attPick.length&&P.cap.a>P.doneA&&P.nextAtt){
+    h+='<p class="muted" style="font-size:.9rem">Il prossimo ascolto attento: '+esc(P.nextAtt.d.title)+', '+when(P.nextAtt.p)+'.</p>';
+  }
   h+='</div></section>';
-  /* rete: si propone solo quando la coda è vuota */
+  /* il calendario */
+  h+=calHtml("calView","mese");
+  /* la rete propone un disco nuovo solo quando la coda è vuota */
   if(!F.coda.length||(F.entering&&F.coda.length===1)){
     const opening=F.act.map(x=>({x,slots:branchSlots(x.p.stage)-childrenOf(x.d.id).length})).filter(o=>o.slots>0&&seedsOf(o.x.d.id).length).sort((a,b)=>b.x.p.stage-a.x.p.stage)[0];
     if(opening){
       const s3=seedsOf(opening.x.d.id).slice(0,3);
-      h+='<section class="block"><div class="block-head"><div class="eyebrow">In orizzontale</div><h2>Scegli il prossimo disco</h2><p>La coda è quasi vuota e '+esc(opening.x.d.title)+' ha aperto un ramo. Scegline uno: entrerà quando si libera il posto. Gli altri aspettano.</p></div><div>'+
-        s3.map(s=>'<div class="seed"><div><b>'+esc(s.title)+'</b> <span class="muted">· '+esc(s.artist)+(s.year?' · '+esc(s.year):'')+'</span>'+(s.why?'<p>'+esc(s.why)+'</p>':'')+'</div><div class="actions"><button class="btn small" data-act="queue" data-id="'+esc(s.id)+'">Metti in coda</button><button class="btn small ghost" data-act="later" data-id="'+esc(s.id)+'">Più tardi</button></div></div>').join("")+'</div></section>';
+      h+='<section class="block"><div class="block-head"><div class="eyebrow">Dalla rete di '+esc(opening.x.d.title)+'</div><h2>Scegli il prossimo disco</h2></div><div>'+
+        s3.map(s=>'<div class="seed"><div>'+coverImg(s,"sm").replace('class="cover sm"','class="cover sm" style="float:right;margin-left:12px"')+'<b>'+esc(s.title)+'</b> <span class="muted">· '+esc(s.artist)+(s.year?' · '+esc(s.year):'')+'</span>'+(s.why?'<p>'+esc(s.why)+'</p>':'')+'</div><div class="actions"><button class="btn small" data-act="queue" data-id="'+esc(s.id)+'">Metti in coda</button><button class="btn small ghost" data-act="later" data-id="'+esc(s.id)+'">Più tardi</button></div></div>').join("")+'</div></section>';
     }
   }
-  /* settimana */
-  const start=T-((new Date(T*864e5).getUTCDay()+6)%7);
-  let wa=0,wp=0,w='<div class="week" role="img" aria-label="Ascolti di questa settimana">';
-  for(let n=start;n<start+7;n++){const ls=listens.filter(l=>dnum(l.date)===n);const a=ls.filter(l=>(l.type||"attento")==="attento").length,pp=ls.length-a;wa+=a;wp+=pp;
-    w+='<div class="'+(n===T?"today":"")+'"><span class="dl">'+fmt(n,{weekday:"short",day:undefined,month:undefined}).slice(0,3)+'</span><i>'+'<em class="a"></em>'.repeat(a)+'<em class="p"></em>'.repeat(pp)+'</i></div>';}
-  w+='</div>';
-  h+='<section class="block"><div class="block-head"><div class="eyebrow">Questa settimana</div><h2>Il ritmo</h2><p class="weeksum">'+wa+(wa===1?' ascolto attento':' ascolti attenti')+' e '+wp+' di passaggio. Con circa 4 ascolti attenti a settimana entra un disco nuovo ogni due settimane.</p></div>'+w+
-   '<div class="legend"><span><i style="background:var(--ink);border-radius:2px"></i>attento</span><span><i style="border:1.5px solid var(--ink);border-radius:2px"></i>di passaggio</span></div>'+statsHtml()+'</section>';
   return h+'</div>';
 }
 function vDischi(){
-  const F=flow();
+  const F=flow(),T=TODAY();
   const sec=(title,desc,arr)=>'<section class="block"><div class="block-head"><h2>'+title+'</h2>'+(desc?'<p>'+desc+'</p>':'')+'</div>'+(arr.length?'<div class="cards">'+arr.map(x=>card(x.d)).join("")+'</div>':'<p class="muted">Nessuno, per ora.</p>')+'</section>';
   const studioOpts=[...discs.values()].filter(isActive).map(d=>'<option value="'+esc(d.id)+'">'+esc(d.title)+'</option>').join("");
-  return '<div class="view"><header class="ph"><div class="ph-top"><div class="eyebrow">'+F.act.length+' in studio · '+F.coda.length+' in coda</div>'+ill("pila")+'</div><h1>Dischi</h1></header>'+
-   sec("In primo piano","La fase intensa: le prime 4 tappe in circa due settimane.",F.primo)+
-   sec("In rotazione · "+F.rot.length+"/"+ROT,"Tornano ogni 1, 2, 3 e poi 4 settimane, sempre con un ascolto attento e una lente nuova.",F.rot)+
+  return '<div class="view"><header class="ph"><div class="ph-top"><div class="eyebrow">'+F.act.length+' in studio · '+F.coda.length+' in coda</div>'+ill("pila")+'</div><h1>Dischi</h1></header>'+flowHtml(F,T)+
+   sec("In primo piano","",F.primo)+
+   sec("In rotazione · "+F.rot.length+"/"+ROT,"",F.rot)+
    (F.full.length?sec("Tuoi","Tornano da te dopo 3 mesi, 6 mesi, un anno e poi una volta all\'anno, con la lente che hai usato meno.",F.full):'')+
    (()=>{const sc=[...discs.values()].filter(isDiscovery).map(d=>({d,p:progress(d)})).sort((a,b)=>(b.p.last??0)-(a.p.last??0));return sc.length?sec("Scoperte · "+sc.length,"Dischi ascoltati fuori dal flusso. Restano qui senza impegno. Se uno ti prende, mettilo in coda e gli ascolti già fatti contano come prime tappe.",sc):'';})()+
    '<section class="block"><div class="block-head"><h2>In coda · '+F.coda.length+'</h2><p>L\'ordine in cui entreranno. Il primo entra da solo quando si libera il posto.</p></div>'+
@@ -653,7 +836,7 @@ function vDischi(){
     '<div class="actions wide"><button class="btn" type="submit">Aggiungi</button></div></form></details></section></div>';
 }
 function vRete(){
-  return '<div class="view"><header class="ph"><div class="ph-top"><div class="eyebrow">In orizzontale</div>'+ill("rete")+'</div><h1>Rete</h1><p>Ogni punto è un disco. Più è grande, più tappe ha. Più è scuro, più l\'hai assorbito. I bordi tratteggiati sono i dischi in coda. Un disco apre due rami alla tappa 4, altri due alla 6 e gli ultimi due quando diventa tuo.</p></header><section class="block">'+
+  return '<div class="view"><header class="ph"><div class="ph-top"><div class="eyebrow">In orizzontale</div>'+ill("rete")+'</div><h1>Rete</h1><p>Ogni punto è un disco: più grande, più tappe; più scuro, più assorbito. Tocca un disco per vederlo.</p></header><section class="block">'+
    '<div class="net"><div><div class="net-box"><svg id="graph" role="img" aria-label="Rete dei dischi collegati"></svg></div>'+
    '<div class="legend"><span><i style="background:var(--deep)"></i>assorbito</span><span><i style="background:color-mix(in oklab,var(--deep) 30%,var(--groove))"></i>appena iniziato</span><span><i style="border:1.5px dashed var(--muted)"></i>in coda</span><span><i style="width:18px;height:0;border-radius:0;border-top:1.5px dashed var(--line)"></i>legame nei crediti</span></div></div>'+
    '<aside class="side" id="side" aria-live="polite">'+(ui.sel&&discs.get(ui.sel)?card(discs.get(ui.sel)):'<div class="empty"><b>Tocca un disco</b><span>Qui vedi la sua barra e quando è pronto per la prossima tappa.</span></div>')+'</aside></div></section>'+shelf()+'</div>';
@@ -673,17 +856,8 @@ function shelf(){
    '</div>').join("")+'</section>';
 }
 function vDiario(){
-  const T=TODAY();
-  const byDay={};for(const l of listens)(byDay[l.date]=byDay[l.date]||[]).push(l);
-  const weeks=18,start=T-((new Date(T*864e5).getUTCDay()+6)%7)-(weeks-1)*7;
-  let heat='<div class="heat" role="img" aria-label="Ascolti delle ultime '+weeks+' settimane">';
-  for(let n=start;n<=T;n++){const c=(byDay[dstr(n)]||[]).length;heat+='<i class="'+(c>=3?"l3":c===2?"l2":c===1?"l1":"")+(n===T?" today":"")+'" title="'+fmt(n)+': '+c+'"></i>';}
-  heat+='</div>';
-  const days=Object.keys(byDay).sort().reverse(),order={mattina:0,pomeriggio:1,sera:2,notte:3};
-  return '<div class="view"><header class="ph"><div class="ph-top"><div class="eyebrow">'+listens.length+(listens.length===1?' ascolto':' ascolti')+' segnati</div>'+ill("quaderno")+'</div><h1>Diario</h1></header><section class="block"><div class="block-head"><div class="eyebrow">Ultime '+weeks+' settimane</div><p>Ogni casella è un giorno, dal lunedì alla domenica. Più è scura, più ascolti hai segnato. Le caselle vuote sono normali: le giornate piene esistono.</p></div><div class="heat-wrap">'+heat+'</div></section>'+
-   '<section class="block">'+(days.length?'<div class="days">'+days.map(day=>'<div class="day"><h3>'+fmt(dnum(day),{weekday:"long",day:"numeric",month:"long",year:"numeric"})+'</h3>'+
-     byDay[day].sort((a,b)=>(order[a.moment]??9)-(order[b.moment]??9)).map(l=>{const d=discs.get(l.disc),att=(l.type||"attento")==="attento";return '<div class="entry"><span class="when">'+esc(MOMENTS[l.moment]||"")+'</span><div><b>'+esc(d?d.title:"Disco rimosso")+'</b>'+(d?' <span class="muted">· '+esc(d.artist)+'</span>':'')+'<span class="lens">'+(att?esc(LENS[l.lens]?.name||"attento"):"di passaggio")+'</span>'+(l.track?'<div class="trk">♪ '+esc(l.track)+'</div>':'')+(l.note?'<div class="note nota">'+esc(l.note)+'</div>':'')+'</div><div class="entry-acts"><button class="linkbtn" data-act="edit" data-id="'+esc(l.id)+'">Modifica</button><button class="linkbtn" data-act="del" data-id="'+esc(l.id)+'">Elimina</button></div></div>';}).join("")+'</div>').join("")+'</div>':
-     '<div class="empty"><b>Il diario è ancora vuoto.</b><span>Ogni ascolto che segni compare qui, giorno per giorno, con la lente e le tue note.</span><button class="btn small" data-act="logany">Segna il primo ascolto</button></div>')+'</section></div>';
+  return '<div class="view"><header class="ph"><div class="ph-top"><div class="eyebrow">'+listens.length+(listens.length===1?' ascolto':' ascolti')+' segnati</div>'+ill("quaderno")+'</div><h1>Diario</h1></header>'+
+    (listens.length?calHtml("diaryView","agenda"):'<div class="empty"><b>Il diario è ancora vuoto.</b><span>Ogni ascolto che segni compare qui e nel calendario.</span><button class="btn small" data-act="logany">Segna il primo ascolto</button></div>')+'</div>';
 }
 function vMetodo(){
   const steps=[["Tappa 1","Il primo ascolto. Meglio attento, con la lente Insieme."],["Tappa 2","Dopo 2 giorni. Anche di passaggio."],["Tappa 3","Dopo 3 giorni. Anche di passaggio, se uno dei primi due era attento."],["Tappa 4","Dopo 5 giorni, ascolto attento. Il disco passa in rotazione, libera il primo piano e apre due rami."],["Tappa 5","Dopo una settimana."],["Tappa 6","Dopo due settimane. Altri due rami."],["Tappa 7","Dopo tre settimane."],["Tappa 8","Dopo un mese: il disco è tuo. Da qui in poi, i ritorni."]];
@@ -753,7 +927,7 @@ document.addEventListener("toggle",e=>{if(e.target.id!=="add-box")return;if(e.ta
 function setTab(t){ui.tab=t;try{localStorage.setItem("ascolta-tab",t);}catch(e){}window.scrollTo(0,0);render();}
 
 /* ---------- dialog ascolto ---------- */
-function openLog(id,type){
+function openLog(id,type,date){
   if(!db){toast("Accedi per salvare gli ascolti.");return;}
   ui.editId=null;$("#dlg-title").textContent="Segna un ascolto";$("#lf-save").textContent="Salva ascolto";$("#lf-disc").disabled=false;
   const F=flow();
@@ -771,7 +945,7 @@ function openLog(id,type){
   ["#lf-n-title","#lf-n-artist","#lf-n-year","#lf-n-q"].forEach(s=>$(s).value="");$("#lf-n-results").innerHTML="";logPick=null;setupLogSearch();$("#lf-n-dest").value="scoperta";
   $("#lf-lens").innerHTML=LENSES.map(l=>'<option value="'+l.id+'">'+esc(l.name)+'</option>').join("");
   (type==="passaggio"?$("#lf-t-pas"):$("#lf-t-att")).checked=true;
-  $("#lf-date").value=todayStr();$("#lf-date").max=todayStr();
+  $("#lf-date").value=date&&date<=todayStr()?date:todayStr();$("#lf-date").max=todayStr();
   const h=new Date().getHours();$("#lf-moment").value=h<12?"mattina":h<18?"pomeriggio":h<23?"sera":"notte";
   $("#lf-track").value="";$("#lf-note").value="";
   syncLens();
@@ -865,6 +1039,12 @@ document.addEventListener("click",async e=>{
   const id=b.dataset.id,act=b.dataset.act;
   if(act==="log")return openLog(id,b.dataset.type);
   if(act==="edit")return openEdit(id);
+  if(act==="cal"){ui.calSel=id;render();return;}
+  if(act==="calprev"||act==="calnext"){ui.calOff=(ui.calOff||0)+(act==="calprev"?-1:1);render();return;}
+  if(act==="logday")return openLog(null,undefined,id);
+  if(act==="calview"){const [k,v]=id.split(":");ui[k]=v;try{localStorage.setItem("ascolta-"+k,v);}catch(err){}render();return;}
+  if(act==="calyear"){ui.calOff=(ui.calOff||0)+12*Number(id);render();return;}
+  if(act==="calmonth"){const [yy,mm]=id.split("-").map(Number),n=new Date();ui.calOff=(yy-n.getFullYear())*12+(mm-n.getMonth());ui.calView="mese";ui.diaryView="mese";render();return;}
   if(act==="logany")return openLog();
   if(act==="cred"){ui.openCred.has(id)?ui.openCred.delete(id):ui.openCred.add(id);if(ui.tab==="rete")$("#side").innerHTML=card(discs.get(id));else render();return;}
   if(act==="hist"){ui.openHist.has(id)?ui.openHist.delete(id):ui.openHist.add(id);if(ui.tab==="rete")$("#side").innerHTML=card(discs.get(id));else render();return;}
