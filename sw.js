@@ -1,6 +1,6 @@
 /* Ascolta · service worker: tiene una copia dell'app sul telefono, così si apre anche senza rete.
    I dati non passano da qui: li gestisce store.js. Quando cambia l'app, alzare VERSION. */
-const VERSION="ascolta-v1";
+const VERSION="ascolta-v2";
 const CORE=["./","index.html","store.js","manifest.webmanifest","icons/apple-touch-icon.png","icons/icon-192.png","icons/icon-512.png"];
 
 self.addEventListener("install",e=>{e.waitUntil(caches.open(VERSION).then(c=>c.addAll(CORE)).then(()=>self.skipWaiting()));});
