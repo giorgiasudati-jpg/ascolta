@@ -676,7 +676,7 @@ function card(d){
   return '<article class="card">'+
    '<div class="card-head"><div class="who">'+coverImg(d)+'<div><h3>'+esc(d.title)+'</h3><div class="artist">'+esc(d.artist)+(d.year?' · '+esc(d.year):'')+'</div></div></div>'+phasePill(d,p)+'</div>'+
    (par?'<div class="from">↳ dalla rete di '+esc(par.title)+'</div>':'')+
-   (isActive(d)?bar(p)+lensDots(p):(d.why?'<p class="muted" style="font-size:.9rem">'+esc(d.why)+'</p>':''))+
+   (isActive(d)?bar(p)+lensDots(p):(d.why?'<p class="muted" style="font-size:.9rem">'+esc(d.why)+'</p>':''))+prodNote(d)+
    readyLine(d,p)+
    '<div class="actions">'+
     (isActive(d)?'<button class="btn small" data-act="log" data-id="'+esc(d.id)+'">Segna ascolto</button>':'')+
@@ -808,7 +808,7 @@ function vOggi(){
     if(opening){
       const s3=seedsOf(opening.x.d.id).slice(0,3);
       h+='<section class="block"><div class="block-head"><div class="eyebrow">Dalla rete di '+esc(opening.x.d.title)+'</div><h2>Scegli il prossimo disco</h2></div><div>'+
-        s3.map(s=>'<div class="seed"><div>'+coverImg(s,"sm").replace('class="cover sm"','class="cover sm" style="float:right;margin-left:12px"')+'<b>'+esc(s.title)+'</b> <span class="muted">· '+esc(s.artist)+(s.year?' · '+esc(s.year):'')+'</span>'+(s.why?'<p>'+esc(s.why)+'</p>':'')+'</div><div class="actions">'+knowAsk(s,'<button class="btn small" data-act="queue" data-id="'+esc(s.id)+'">Metti in coda</button><button class="btn small ghost" data-act="later" data-id="'+esc(s.id)+'">Più tardi</button>')+'</div></div>').join("")+'</div></section>';
+        s3.map(s=>'<div class="seed"><div>'+coverImg(s,"sm").replace('class="cover sm"','class="cover sm" style="float:right;margin-left:12px"')+'<b>'+esc(s.title)+'</b> <span class="muted">· '+esc(s.artist)+(s.year?' · '+esc(s.year):'')+'</span>'+(s.why?'<p>'+esc(s.why)+'</p>':'')+prodNote(s)+'</div><div class="actions">'+knowAsk(s,'<button class="btn small" data-act="queue" data-id="'+esc(s.id)+'">Metti in coda</button><button class="btn small ghost" data-act="later" data-id="'+esc(s.id)+'">Più tardi</button>')+'</div></div>').join("")+'</div></section>';
     }
   }
   return h+'</div>';
@@ -823,7 +823,7 @@ function vDischi(){
    (F.full.length?sec("Tuoi","Tornano da te dopo 3 mesi, 6 mesi, un anno e poi una volta all\'anno, con la lente che hai usato meno.",F.full):'')+
    (()=>{const sc=[...discs.values()].filter(isDiscovery).map(d=>({d,p:progress(d)})).sort((a,b)=>(b.p.last??0)-(a.p.last??0));return sc.length?sec("Scoperte · "+sc.length,"Dischi ascoltati fuori dal flusso o che conosci già. Restano qui senza impegno. Se uno ti prende, mettilo in coda e gli ascolti già fatti contano come prime tappe.",sc):'';})()+
    '<section class="block"><div class="block-head"><h2>In coda · '+F.coda.length+'</h2><p>L\'ordine in cui entreranno. Il primo entra da solo quando si libera il posto.</p></div>'+
-   (F.coda.length?'<ol class="qlist">'+F.coda.map((d,i)=>'<li><div>'+coverImg(d,"sm").replace('class="cover sm"','class="cover sm" style="float:right;margin-left:10px"')+'<b>'+esc(d.title)+'</b> <span class="muted">· '+esc(d.artist)+(d.year?' · '+esc(d.year):'')+'</span>'+(d.why?'<p>'+esc(d.why)+'</p>':'')+(d.baseStage?'<p>Parte dalla tappa '+d.baseStage+'.</p>':'')+'</div><div class="actions">'+(i>0?'<button class="btn small ghost" data-act="top" data-id="'+esc(d.id)+'">Metti per primo</button>':'')+'<button class="btn small ghost" data-act="unqueue" data-id="'+esc(d.id)+'">'+(d.parent?'Rimetti tra i semi':'Togli')+'</button></div></li>').join("")+'</ol>':'<p class="muted">La coda è vuota. Quando un disco apre la rete, in Oggi ti propongo cosa mettere qui.</p>')+
+   (F.coda.length?'<ol class="qlist">'+F.coda.map((d,i)=>'<li><div>'+coverImg(d,"sm").replace('class="cover sm"','class="cover sm" style="float:right;margin-left:10px"')+'<b>'+esc(d.title)+'</b> <span class="muted">· '+esc(d.artist)+(d.year?' · '+esc(d.year):'')+'</span>'+(d.why?'<p>'+esc(d.why)+'</p>':'')+prodNote(d)+(d.baseStage?'<p>Parte dalla tappa '+d.baseStage+'.</p>':'')+'</div><div class="actions">'+(i>0?'<button class="btn small ghost" data-act="top" data-id="'+esc(d.id)+'">Metti per primo</button>':'')+'<button class="btn small ghost" data-act="unqueue" data-id="'+esc(d.id)+'">'+(d.parent?'Rimetti tra i semi':'Togli')+'</button></div></li>').join("")+'</ol>':'<p class="muted">La coda è vuota. Quando un disco apre la rete, in Oggi ti propongo cosa mettere qui.</p>')+
    '<details class="add" id="add-box"><summary>+ Aggiungi un disco alla coda</summary>'+
    '<div class="finder"><label class="f" for="af-q">Cerca su Apple Music<input id="af-q" type="search" placeholder="Titolo o artista" autocomplete="off" enterkeyhint="search"></label><div class="results" id="af-results"></div><div id="af-picked"></div></div>'+
    '<form class="form" id="add-form" novalidate>'+
@@ -849,17 +849,68 @@ function knowAsk(d,btns){
 }
 /* lo scaffale: tutti i semi, raggruppati per disco di provenienza. Solo da sfogliare: niente contatori, il ritmo resta all'app */
 function shelf(){
-  const seeds=[...discs.values()].filter(d=>d.status==="seme");
-  if(!seeds.length)return '';
+  const seeds=[...discs.values()].filter(d=>d.status==="seme"),low=seeds.length<6;
+  const ask='<div class="shelf"><p class="muted">'+(low?'<b>Lo scaffale si sta svuotando.</b> ':'')+'Per un nuovo giro di suggerimenti copia il riassunto dei tuoi dischi e incollalo a Claude: i dischi nuovi arrivano qui da soli.</p><div class="actions"><button class="btn small'+(low?'':' ghost')+'" data-act="forclaude">Copia per Claude</button></div></div>';
+  if(!seeds.length)return '<section class="block"><div class="block-head"><div class="eyebrow">Per ispirarti</div><h2>Lo scaffale</h2></div>'+ask+'</section>';
   const groups=new Map();
   for(const d of seeds){const k=d.parent&&discs.get(d.parent)?d.parent:"";if(!groups.has(k))groups.set(k,[]);groups.get(k).push(d);}
   const keys=[...groups.keys()].sort((a,b)=>(a?progress(discs.get(b)).stage-progress(discs.get(a)).stage:1)||0);
   return '<section class="block"><div class="block-head"><div class="eyebrow">Per ispirarti</div><h2>Lo scaffale</h2><p>I dischi suggeriti dalla rete di quelli che studi. Niente fretta: sfogliali quando cerchi un ascolto nuovo. In Oggi l\'app continua a proporteli tre alla volta, quando è il momento.</p></div>'+
    keys.map(k=>'<div class="shelf"><div class="eyebrow">'+(k?'Dalla rete di '+esc(discs.get(k).title):'Senza disco di provenienza')+'</div>'+
      groups.get(k).sort((a,b)=>(a.order||0)-(b.order||0)).map(d=>'<div class="seed">'+
-       '<div>'+coverImg(d,"sm").replace('class="cover sm"','class="cover sm" style="float:right;margin-left:12px"')+'<b>'+esc(d.title)+'</b> <span class="muted">· '+esc(d.artist)+(d.year?' · '+esc(d.year):'')+'</span>'+(d.why?'<p>'+esc(d.why)+'</p>':'')+'</div>'+
+       '<div>'+coverImg(d,"sm").replace('class="cover sm"','class="cover sm" style="float:right;margin-left:12px"')+'<b>'+esc(d.title)+'</b> <span class="muted">· '+esc(d.artist)+(d.year?' · '+esc(d.year):'')+'</span>'+(d.why?'<p>'+esc(d.why)+'</p>':'')+prodNote(d)+'</div>'+
        '<div class="actions">'+knowAsk(d,'<button class="btn small ghost" data-act="log" data-id="'+esc(d.id)+'" data-type="passaggio">Ascoltato</button><button class="btn small ghost" data-act="queue" data-id="'+esc(d.id)+'">Metti in coda</button>'+(d.meta&&d.meta.url?'<a class="linkbtn" href="'+esc(d.meta.url)+'" target="_blank" rel="noopener">Apri in Musica</a>':''))+'</div></div>').join("")+
-   '</div>').join("")+'</section>';
+   '</div>').join("")+ask+'</section>';
+}
+/* nei semi dei giri di Claude: cosa ascoltare da produttrice */
+function prodNote(d){return d.ascolta?'<p class="nota" style="font-size:.9rem;margin-top:6px">'+esc(d.ascolta)+'</p>':'';}
+
+/* ---------- i giri di Claude ----------
+   Claude pubblica i nuovi semi in semi.json; l'app li aggiunge allo scaffale subito dopo uno scaricamento fresco dal database.
+   Un disco che c'è già (stesso titolo e artista, in qualunque stato) non si aggiunge: quelli tolti non tornano. */
+const keyOf=(t,a)=>((t||"")+"|"+(a||"")).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9|]+/g,"");
+let importing=false;
+async function importGiri(){
+  if(importing||!db)return;importing=true;
+  try{
+    const r=await fetch("semi.json",{cache:"no-cache"});if(!r.ok)return;
+    const j=await r.json(),all=[...discs.values()];
+    const have=new Set(all.map(d=>keyOf(d.title,d.artist)));
+    const byTitle=new Map(all.filter(d=>d.status!=="seme").map(d=>[keyOf(d.title,""),d]));
+    let n=0;
+    for(const g of j.giri||[])for(const s of g.semi||[]){
+      const k=keyOf(s.title,s.artist);if(!s.title||have.has(k))continue;have.add(k);
+      const par=s.parent?byTitle.get(keyOf(s.parent,"")):null;
+      const order=Math.max(0,...seedsOf(par?par.id:null).map(x=>x.order||0))+1;
+      if(await db.doc("dischi/giro-"+k.replace("|","--")).create({title:s.title,artist:s.artist||"",year:String(s.year||""),parent:par?par.id:null,status:"seme",baseStage:0,why:s.why||"",ascolta:s.ascolta||"",giro:g.data||"",order,createdAt:Date.now()}))n++;
+    }
+    if(n)toast(n===1?"Un suggerimento nuovo sullo scaffale.":n+" suggerimenti nuovi sullo scaffale.");
+  }catch(e){console.warn("Enlist: giro non importato",e);}
+  finally{importing=false;}
+}
+/* il riassunto da incollare a Claude: cosa studi, cosa conosci, cosa hai tolto, gli ultimi ascolti */
+function claudeText(){
+  const all=[...discs.values()],L=[];
+  const name=d=>d.title+" — "+d.artist+(d.year?" ("+d.year+")":"");
+  const cred=d=>d.credits&&d.credits.list&&d.credits.list.length?" · crediti: "+d.credits.list.slice(0,8).map(e=>e.n+" ("+e.r.join(", ")+")").join("; "):"";
+  const par=d=>d.parent&&discs.get(d.parent)?" · dalla rete di "+discs.get(d.parent).title:"";
+  const group=(title,list,fn)=>{if(!list.length)return;L.push("","## "+title+" · "+list.length);list.forEach(d=>L.push("- "+name(d)+fn(d)));};
+  L.push("# ENLIST · riassunto per Claude · "+todayStr());
+  group("In studio",all.filter(isActive),d=>{const p=progress(d);return " · tappa "+p.stage+"/"+MAX+" · "+p.ls.filter(l=>(l.type||"attento")==="attento").length+" attenti"+(p.used.size?" · lenti: "+[...p.used].map(x=>LENS[x].name).join(", "):"")+cred(d);});
+  group("In coda",all.filter(inQueue),d=>(d.known?" · lo conosco già":"")+par(d));
+  group("Lo conosco già",all.filter(d=>isDiscovery(d)&&d.known),d=>" · "+(d.baseStage>=4?"a fondo":"sommariamente")+par(d));
+  group("Scoperte ascoltate",all.filter(d=>isDiscovery(d)&&!d.known),d=>par(d));
+  group("Ancora sullo scaffale",all.filter(d=>d.status==="seme"),d=>par(d)+(d.giro?" · giro "+d.giro:""));
+  group("Tolti",all.filter(d=>d.status==="archivio"),()=>"");
+  const ls=listens.slice().sort((a,b)=>a.date<b.date?1:-1).slice(0,20);
+  if(ls.length){L.push("","## Ultimi ascolti");ls.forEach(l=>{const d=discs.get(l.disc);L.push("- "+l.date+" · "+(d?d.title:"?")+" · "+(l.type||"attento")+(l.lens&&LENS[l.lens]?" · "+LENS[l.lens].name:"")+(l.track?" · brano: "+l.track:"")+(l.note?" · nota: "+l.note.replace(/\s+/g," "):""));});}
+  return L.join("\n");
+}
+async function copyForClaude(){
+  const t=claudeText();
+  try{await navigator.clipboard.writeText(t);}
+  catch(e){const a=document.createElement("textarea");a.value=t;document.body.appendChild(a);a.select();document.execCommand("copy");a.remove();}
+  toast("Copiato. Incollalo a Claude nella chat.");
 }
 function vDiario(){
   return '<div class="view"><header class="ph"><div class="ph-top"><div class="eyebrow">'+listens.length+(listens.length===1?' ascolto':' ascolti')+' segnati</div>'+ill("quaderno")+'</div><h1>Diario</h1></header>'+
@@ -1055,6 +1106,7 @@ document.addEventListener("click",async e=>{
   if(act==="cred"){ui.openCred.has(id)?ui.openCred.delete(id):ui.openCred.add(id);if(ui.tab==="rete")$("#side").innerHTML=card(discs.get(id));else render();return;}
   if(act==="hist"){ui.openHist.has(id)?ui.openHist.delete(id):ui.openHist.add(id);if(ui.tab==="rete")$("#side").innerHTML=card(discs.get(id));else render();return;}
   if(act==="knowask"){ui.knowAsk=id||null;render();return;}
+  if(act==="forclaude"){copyForClaude();return;}
   if(!db){toast("Accedi per salvare.");return;}
   b.disabled=true;
   try{
@@ -1100,6 +1152,7 @@ function showLogin(){
 }
 function start(){
   db=Store;
+  db.onPulled(()=>{if(loaded.d)importGiri();});
   $("#main").innerHTML='<div class="empty"><b>Sto aprendo i tuoi dischi…</b></div>';
   db.collection("dischi").limit(1000).onSnapshot(snap=>{discs=new Map(snap.docs.map(d=>[d.id,Object.assign({id:d.id},d.data())]));loaded.d=true;render();});
   db.collection("ascolti").limit(1000).onSnapshot(snap=>{listens=snap.docs.map(d=>Object.assign({id:d.id},d.data())).filter(l=>typeof l.disc==="string"&&typeof l.date==="string"&&/^\d{4}-\d{2}-\d{2}$/.test(l.date));loaded.l=true;render();});

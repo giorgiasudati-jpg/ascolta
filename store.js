@@ -16,7 +16,7 @@ const Store=(()=>{
   let lastError=null;
   /* al primo accesso su un dispositivo la copia locale è vuota: si mostra solo dopo il primo scaricamento */
   let pulled=!!load("ascolta-pulled");
-  const subs={dischi:[],ascolti:[]}, statusSubs=[];
+  const subs={dischi:[],ascolti:[]}, statusSubs=[], pulledSubs=[];
 
   function snap(col){return {docs:Object.entries(cache[col]).map(([id,data])=>({id,data:()=>data}))};}
   function emit(col){const s=snap(col);subs[col].forEach(cb=>cb(s));}
@@ -57,7 +57,7 @@ const Store=(()=>{
     }
     /* quello che non è ancora partito resta valido sopra i dati del server */
     for(const o of outbox){if(o.op==="set")fresh[o.col][o.id]=o.data;else delete fresh[o.col][o.id];}
-    cache=fresh;lastError=null;pulled=true;save("ascolta-pulled",true);persist();COLS.forEach(emit);
+    cache=fresh;lastError=null;pulled=true;save("ascolta-pulled",true);persist();COLS.forEach(emit);pulledSubs.forEach(cb=>cb());
   }
 
   function collection(col){
@@ -72,7 +72,9 @@ const Store=(()=>{
     const [col,id]=path.split("/");
     return {
       async update(patch){const cur=cache[col][id];if(!cur)throw new Error("not_found");const data={...cur,...patch};cache[col][id]=data;emit(col);queue({op:"set",col,id,data});},
-      async delete(){delete cache[col][id];emit(col);queue({op:"del",col,id});}
+      async delete(){delete cache[col][id];emit(col);queue({op:"del",col,id});},
+      /* crea solo se non esiste già: va usato subito dopo uno scaricamento fresco, così non copre mai una versione più nuova */
+      async create(data){if(cache[col][id])return false;cache[col][id]=data;emit(col);queue({op:"set",col,id,data});return true;}
     };
   }
 
@@ -91,5 +93,5 @@ const Store=(()=>{
     setInterval(()=>{if(document.visibilityState==="visible")pull();},5*60*1000);
   }
 
-  return {collection,doc,session,signIn,signOut,start,pull,onStatus:cb=>{statusSubs.push(cb);status();}};
+  return {collection,doc,session,signIn,signOut,start,pull,onStatus:cb=>{statusSubs.push(cb);status();},onPulled:cb=>{pulledSubs.push(cb);}};
 })();
