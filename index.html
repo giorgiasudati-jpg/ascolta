@@ -391,8 +391,7 @@ dialog .actions{grid-column:1/-1;justify-content:flex-end;padding-top:4px}
 .ag-item{border:0;background:none;color:inherit;text-align:left;padding:0;cursor:pointer;min-width:0}
 .ag-item b{font-weight:800;font-size:1rem;display:block}
 .ag-note{display:block;font-size:.8rem;opacity:.75;margin-top:4px;padding-left:10px;border-left:2px solid currentColor;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
-.ag-side{display:flex;flex-direction:column;justify-content:space-between;align-items:flex-end;gap:10px}
-.ag-day .plus.sm{border-color:currentColor;color:inherit}
+.ag-side{display:flex;flex-direction:column;align-items:flex-end;gap:10px}
 .stack{display:grid;grid-template-columns:repeat(2,auto);gap:6px;justify-content:end}
 .stack:has(> :only-child){grid-template-columns:auto}
 .stack img,.stack .ph,.stack .more{width:52px;height:52px;border-radius:12px;object-fit:cover;filter:grayscale(1);background:color-mix(in srgb,currentColor 18%,transparent)}
@@ -431,6 +430,34 @@ dialog .actions{grid-column:1/-1;justify-content:flex-end;padding-top:4px}
   dialog form{grid-template-columns:1fr}
   .newdisc{grid-template-columns:1fr}
 }
+/* telefono: modulo dal basso, barra che si toglie di mezzo, bersagli comodi per le dita */
+button,a,label,summary,select,input{touch-action:manipulation}
+nav.tabs,.fab{transition:transform .28s ease}
+body.bar-off nav.tabs{transform:translateY(calc(100% + 24px + var(--safe-b)))}
+body.bar-off .fab{transform:translateY(calc(100% + 90px + var(--safe-b)))}
+.shelf-g>summary{list-style:none;display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:48px;cursor:pointer;border-top:1px solid var(--rule)}
+.shelf-g>summary::-webkit-details-marker{display:none}
+.shelf-g>summary::after{content:"+";font-size:1.4rem;font-weight:300;line-height:1;color:var(--ink)}
+.shelf-g[open]>summary::after{content:"\2212"}
+.shelf-g>summary .eyebrow{padding:0}
+.shelf-g .n{font-weight:400;opacity:.7}
+.ag-date{border:0;border-right:1px solid color-mix(in srgb,currentColor 30%,transparent);background:none;color:inherit;font:inherit;cursor:pointer;padding:0 14px 0 0;text-align:left}
+@media (max-width:640px){
+  dialog{width:100%;max-width:100%;margin:auto 0 0;border-radius:24px 24px 0 0;border-width:1.5px 0 0;max-height:92dvh;overflow:auto;overscroll-behavior:contain}
+  dialog[open]{animation:sheet .26s ease-out}
+  dialog form{gap:12px;padding:20px 18px 0}
+  dialog h2{font-size:1.3rem}
+  dialog .actions{position:sticky;bottom:0;z-index:1;margin:4px -18px 0;padding:12px 18px calc(12px + var(--safe-b));background:var(--paper);border-top:1px solid var(--rule)}
+  dialog .actions .btn{flex:1;min-height:48px}
+  .cal-side{display:none}
+  .cal-head h2{font-size:clamp(1rem,5vw,1.25rem)}
+  .cal .pills .plus{display:none}
+  #graph{height:320px}
+  .btn{min-height:44px}
+  .btn.small{min-height:40px}
+  .linkbtn{min-height:40px;display:inline-flex;align-items:center}
+}
+@keyframes sheet{from{transform:translateY(40px);opacity:.4}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 
@@ -540,7 +567,7 @@ applyMonth();
 matchMedia("(prefers-color-scheme: dark)").addEventListener("change",applyMonth);
 
 let db=null, discs=new Map(), listens=[], loaded={d:false,l:false};
-const ui={tab:"oggi",sel:null,openHist:new Set(),openCred:new Set(),day:"normale",calOff:0,calSel:null,calView:null,diaryView:null,knowAsk:null};
+const ui={tab:"oggi",sel:null,openHist:new Set(),openCred:new Set(),day:"normale",calOff:0,calSel:null,calView:null,diaryView:null,knowAsk:null,shelfOpen:new Set()};
 try{ui.calView=localStorage.getItem("ascolta-calView");ui.diaryView=localStorage.getItem("ascolta-diaryView");}catch(e){}
 try{const t=localStorage.getItem("ascolta-tab");if(t)ui.tab=t;const d=JSON.parse(localStorage.getItem("ascolta-day")||"null");if(d&&d.date===todayStr()&&DAY[d.type])ui.day=d.type;}catch(e){}
 
@@ -745,9 +772,9 @@ function calHtml(key,def){
     if(!days.length)return h+'<div class="empty"><b>Nessun ascolto in questo mese.</b><span>Tocca + per segnarne uno.</span></div></section>';
     h+='<div class="agenda">'+days.map(ds=>{
       const ls=by[ds].slice().sort((a,b)=>(order[a.moment]??9)-(order[b.moment]??9)),a=ls.some(l=>(l.type||"attento")==="attento"),n=dnum(ds);
-      return '<div class="ag-day'+(a?' a':'')+'"><div class="ag-date"><span>'+esc(fmt(n,{weekday:"short",day:undefined,month:undefined}).replace(".",""))+'</span><b>'+Number(ds.slice(8))+'</b><span>'+esc(fmt(n,{month:"short",day:undefined}).replace(".",""))+'</span></div>'+
+      return '<div class="ag-day'+(a?' a':'')+'"><button type="button" class="ag-date" data-act="logday" data-id="'+ds+'" aria-label="Segna un ascolto il '+esc(fmt(n))+'"><span>'+esc(fmt(n,{weekday:"short",day:undefined,month:undefined}).replace(".",""))+'</span><b>'+Number(ds.slice(8))+'</b><span>'+esc(fmt(n,{month:"short",day:undefined}).replace(".",""))+'</span></button>'+
         '<div class="ag-list">'+ls.map(l=>{const d=discs.get(l.disc),att=(l.type||"attento")==="attento";return '<button type="button" class="ag-item" data-act="edit" data-id="'+esc(l.id)+'"><b>'+esc(d?d.title:"Disco rimosso")+'</b><span class="chips"><span class="chip">'+(att?esc(LENS[l.lens]?.name||"attento"):"di passaggio")+'</span>'+(l.moment?'<span class="chip">'+esc(l.moment)+'</span>':'')+(l.track?'<span class="chip">♪ '+esc(l.track)+'</span>':'')+'</span>'+(l.note?'<span class="ag-note">'+esc(l.note)+'</span>':'')+'</button>';}).join("")+'</div>'+
-        '<div class="ag-side">'+coverStack(ls)+'<button type="button" class="plus sm" data-act="logday" data-id="'+ds+'" aria-label="Segna un ascolto il '+esc(fmt(n))+'">+</button></div></div>';
+        '<div class="ag-side">'+coverStack(ls)+'</div></div>';
     }).join("")+'</div>';
     return h+'</section>';
   }
@@ -857,11 +884,11 @@ function shelf(){
   for(const d of seeds){const k=d.parent&&discs.get(d.parent)?d.parent:"";if(!groups.has(k))groups.set(k,[]);groups.get(k).push(d);}
   const keys=[...groups.keys()].sort((a,b)=>(a?progress(discs.get(b)).stage-progress(discs.get(a)).stage:1)||0);
   return '<section class="block"><div class="block-head"><div class="eyebrow">Per ispirarti</div><h2>Lo scaffale</h2><p>I dischi suggeriti dalla rete di quelli che studi. Niente fretta: sfogliali quando cerchi un ascolto nuovo. In Oggi l\'app continua a proporteli tre alla volta, quando è il momento.</p></div>'+
-   keys.map(k=>'<div class="shelf"><div class="eyebrow">'+(k?'Dalla rete di '+esc(discs.get(k).title):'Senza disco di provenienza')+'</div>'+
+   keys.map(k=>'<details class="shelf shelf-g" data-g="'+esc(k)+'"'+(ui.shelfOpen.has(k)?' open':'')+'><summary><span class="eyebrow">'+(k?'Dalla rete di '+esc(discs.get(k).title):'Senza disco di provenienza')+' <span class="n">· '+groups.get(k).length+'</span></span></summary>'+
      groups.get(k).sort((a,b)=>(a.order||0)-(b.order||0)).map(d=>'<div class="seed">'+
        '<div>'+coverImg(d,"sm").replace('class="cover sm"','class="cover sm" style="float:right;margin-left:12px"')+'<b>'+esc(d.title)+'</b> <span class="muted">· '+esc(d.artist)+(d.year?' · '+esc(d.year):'')+'</span>'+(d.why?'<p>'+esc(d.why)+'</p>':'')+prodNote(d)+'</div>'+
        '<div class="actions">'+knowAsk(d,'<button class="btn small ghost" data-act="log" data-id="'+esc(d.id)+'" data-type="passaggio">Ascoltato</button><button class="btn small ghost" data-act="queue" data-id="'+esc(d.id)+'">Metti in coda</button>'+(d.meta&&d.meta.url?'<a class="linkbtn" href="'+esc(d.meta.url)+'" target="_blank" rel="noopener">Apri in Musica</a>':''))+'</div></div>').join("")+
-   '</div>').join("")+ask+'</section>';
+   '</details>').join("")+ask+'</section>';
 }
 /* nei semi dei giri di Claude: cosa ascoltare da produttrice */
 function prodNote(d){return d.ascolta?'<p class="nota" style="font-size:.9rem;margin-top:6px">'+esc(d.ascolta)+'</p>':'';}
@@ -981,7 +1008,7 @@ function render(){
   window.scrollTo(0,y);
   if(ui.tab==="rete")drawGraph();
 }
-document.addEventListener("toggle",e=>{if(e.target.id!=="add-box")return;if(e.target.open)setupAddSearch();else{addPick=null;render();}},true);
+document.addEventListener("toggle",e=>{const g=e.target.closest&&e.target.closest(".shelf-g");if(g&&g===e.target){ui.shelfOpen[g.open?"add":"delete"](g.dataset.g);return;}if(e.target.id!=="add-box")return;if(e.target.open)setupAddSearch();else{addPick=null;render();}},true);
 function setTab(t){ui.tab=t;try{localStorage.setItem("ascolta-tab",t);}catch(e){}window.scrollTo(0,0);render();}
 
 /* ---------- dialog ascolto ---------- */
@@ -1136,6 +1163,23 @@ document.addEventListener("submit",async e=>{
     toast(top?"Aggiunto come primo della coda.":"Aggiunto in fondo alla coda.");setTimeout(enrichAll,1500);
   }catch(err){writeErr(err);}
 });
+
+/* telefono: scorrendo verso il basso barra e "+" si tolgono di mezzo, risalendo tornano; in fondo alla pagina restano visibili */
+let lastY=0;
+window.addEventListener("scroll",()=>{
+  const y=window.scrollY,end=y+innerHeight>=document.documentElement.scrollHeight-40;
+  if(Math.abs(y-lastY)<8&&!end)return;
+  document.body.classList.toggle("bar-off",y>lastY&&y>80&&!end);lastY=y;
+},{passive:true});
+/* calendario: un colpo di dito a destra o a sinistra cambia mese (o anno) */
+let swipe=null;
+document.addEventListener("touchstart",e=>{const c=e.target.closest(".cal");swipe=c&&e.touches.length===1?{x:e.touches[0].clientX,y:e.touches[0].clientY}:null;},{passive:true});
+document.addEventListener("touchend",e=>{
+  if(!swipe)return;const t=e.changedTouches[0],dx=t.clientX-swipe.x,dy=t.clientY-swipe.y;swipe=null;
+  if(Math.abs(dx)<60||Math.abs(dx)<Math.abs(dy)*1.5)return;
+  const year=(ui.tab==="diario"?ui.diaryView||"agenda":ui.calView||"mese")==="anno";
+  ui.calOff=(ui.calOff||0)+(dx<0?1:-1)*(year?12:1);render();
+},{passive:true});
 
 /* ---------- avvio ---------- */
 let refreshDay=todayStr();
