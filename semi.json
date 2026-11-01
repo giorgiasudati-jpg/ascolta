@@ -1,3 +1,57 @@
 {
-  "giri": []
+  "giri": [
+    {
+      "data": "2026-11-01",
+      "semi": [
+        {
+          "title": "Leon",
+          "artist": "Leon Bridges",
+          "year": "2024",
+          "parent": "Full Circle",
+          "why": "Prodotto da Ian Fitchuk, co-produttore e batterista di Full Circle, a El Desierto fuori Città del Messico, con Daniel Tashian (Golden Hour).",
+          "ascolta": "Da produttrice: conta quanti strumenti suonano davvero in ogni brano e dove sta la batteria rispetto alla voce. Stesso co-produttore di Full Circle: le scelte si somigliano?"
+        },
+        {
+          "title": "The Loop",
+          "artist": "Jordan Rakei",
+          "year": "2024",
+          "parent": "Full Circle",
+          "why": "Rakei suona le tastiere in Echo From The Flames su Full Circle. Questo se l'è prodotto da solo, ai RAK Studios, mix di Ben Baptie.",
+          "ascolta": "Da produttrice: un artista che si produce da sé. Come costruisce i cori, come archi e fiati entrano senza coprire il groove."
+        },
+        {
+          "title": "Like in Dreams",
+          "artist": "Kaidi Akinnibi",
+          "year": "2025",
+          "parent": "Full Circle",
+          "why": "Il sassofonista ospite di Full Circle. Debutto dalla scena jazz di Londra, tra jazz ed elettronica. (Annunciato anche come Short Stories.)",
+          "ascolta": "Da produttrice: come un musicista jazz tratta l'elettronica, colore o struttura del brano?"
+        },
+        {
+          "title": "This Wasn't Meant for You Anyway",
+          "artist": "Lola Young",
+          "year": "2024",
+          "parent": "Mud",
+          "why": "Co-prodotto da Solomonophonic, il produttore di Remi Wolf dai tempi del liceo, nel suo studio di casa, con i Manuka.",
+          "ascolta": "Da produttrice: stesso produttore, voce opposta. Cerca la sua mano (chitarre, basso, voci lasciate grezze) e confronta con Mud."
+        },
+        {
+          "title": "Light Hit My Face Like a Straight Right",
+          "artist": "Mallrat",
+          "year": "2025",
+          "parent": "She's the Best",
+          "why": "Torna Styalz Fuego, uno dei produttori di She's the Best, con Buddy Ross, Japanese Wallpaper e Tim Nelson dei Cub Sport.",
+          "ascolta": "Da produttrice: tanti produttori, un suono solo. Cosa tiene unito il disco: voce vicinissima, intensità bassa, palette di suoni."
+        },
+        {
+          "title": "Cub Sport",
+          "artist": "Cub Sport",
+          "year": "2019",
+          "parent": "She's the Best",
+          "why": "George Daniel, co-produttore di She's the Best, ha fatto il suo primo singolo solista co-prodotto con Tim Nelson. Questo è il disco della band di Nelson, prodotto soprattutto da lui.",
+          "ascolta": "Da produttrice: pop fatto in casa con mezzi piccoli e risultato grande. Fai caso a sintetizzatori e voci sovrapposte."
+        }
+      ]
+    }
+  ]
 }
